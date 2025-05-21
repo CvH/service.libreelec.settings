@@ -30,7 +30,7 @@ class Agent(dbus_utils.Agent):
         out_signature=''
     )
     def Release(self):
-        pass
+        pass # Interface method, no specific action needed here
 
     @ravel.method(
         in_signature='o',
@@ -47,7 +47,7 @@ class Agent(dbus_utils.Agent):
         out_signature=''
     )
     def Cancel(self):
-        pass
+        pass # Interface method, no specific action needed here
 
     def reject(self, message):
         raise dbussy.DBusError(ERROR_REJECTED, message)

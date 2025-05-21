@@ -7,6 +7,7 @@ import json
 import os
 import re
 import shutil
+import subprocess # Added import
 import tempfile
 import threading
 import time
@@ -229,17 +230,44 @@ class updates(modules.Module):
         gpu_driver = ""
         gpu_card = self.get_gpu_card()
         log.log(f'Using card: {gpu_card}', log.DEBUG)
-        gpu_path = os_tools.execute(f'/usr/bin/udevadm info --name=/dev/dri/{gpu_card} --query path 2>/dev/null', get_result=True, output_err_msg=False).replace('\n','')
+        gpu_path = ""
+        try:
+            cmd_gpu_path = ['/usr/bin/udevadm', 'info', f'--name=/dev/dri/{gpu_card}', '--query', 'path']
+            result_gpu_path = subprocess.run(cmd_gpu_path, shell=False, check=False, capture_output=True, text=True)
+            if result_gpu_path.returncode == 0:
+                gpu_path = result_gpu_path.stdout.strip()
+            else:
+                log.log(f"udevadm command failed: {' '.join(cmd_gpu_path)} with rc {result_gpu_path.returncode}: {result_gpu_path.stderr.strip()}", log.ERROR)
+        except FileNotFoundError:
+            log.log(f"udevadm command not found.", log.ERROR)
+        except Exception as e:
+            log.log(f"An unexpected error occurred with udevadm (gpu_path): {e}", log.ERROR)
+
         log.log(f'gpu path: {gpu_path}', log.DEBUG)
         if gpu_path:
             drv_path = os.path.dirname(os.path.dirname(gpu_path))
-            props = os_tools.execute(f'/usr/bin/udevadm info --path={drv_path} --query=property 2>/dev/null', get_result=True, output_err_msg=False)
-            if props:
-                for key, value in [x.strip().split('=') for x in props.strip().split('\n')]:
-                    gpu_props[key] = value
+            props_str = ""
+            try:
+                cmd_props = ['/usr/bin/udevadm', 'info', f'--path={drv_path}', '--query=property']
+                result_props = subprocess.run(cmd_props, shell=False, check=False, capture_output=True, text=True)
+                if result_props.returncode == 0:
+                    props_str = result_props.stdout.strip()
+                else:
+                    log.log(f"udevadm command failed: {' '.join(cmd_props)} with rc {result_props.returncode}: {result_props.stderr.strip()}", log.ERROR)
+            except FileNotFoundError:
+                log.log(f"udevadm command not found.", log.ERROR)
+            except Exception as e:
+                log.log(f"An unexpected error occurred with udevadm (props): {e}", log.ERROR)
+
+            if props_str:
+                for line in props_str.strip().split('\n'):
+                    if '=' in line:
+                        key, value = line.strip().split('=', 1)
+                        gpu_props[key] = value
             log.log(f'gpu props: {gpu_props}', log.DEBUG)
             gpu_driver = gpu_props.get("DRIVER", "")
         if not gpu_driver:
+            # This lspci call is complex and will be left as is for now, per instructions.
             gpu_driver = os_tools.execute('lspci -k | grep -m1 -A999 "VGA compatible controller" | grep -m1 "Kernel driver in use" | cut -d" " -f5', get_result=True).replace('\n','')
         if gpu_driver == 'nvidia' and os.path.realpath('/var/lib/nvidia_drv.so').endswith('nvidia-legacy_drv.so'):
             gpu_driver = 'nvidia-legacy'

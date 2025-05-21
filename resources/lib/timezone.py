@@ -6,6 +6,8 @@
 
 import os
 from urllib.request import urlopen
+import urllib.error # Added import
+import socket      # Added import
 
 import config
 import log
@@ -22,10 +24,9 @@ def guess_timezone():
     def QueryWebServer(url):
         '''Query a webserver for a response.'''
         try:
-            response = urlopen(url)
-        except Exception as err:
-            log.log(f'Error querying: {url}', log.ERROR)
-            log.log(err, log.ERROR)
+            response = urlopen(url, timeout=10) # Added timeout
+        except (urllib.error.URLError, urllib.error.HTTPError, socket.timeout, ConnectionResetError) as err:
+            log.log(f'Error querying URL: "{url}" - Error: {err}', log.ERROR)
             response = None
         return response.read().decode('utf-8').strip() if response else None
 

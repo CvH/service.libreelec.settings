@@ -12,6 +12,7 @@ import locale
 import os
 import re
 import sys
+import threading
 import time
 import urllib.request
 import urllib.parse
@@ -37,7 +38,9 @@ xbmcDialog = xbmcgui.Dialog()
 xbmcm = xbmc.Monitor()
 
 is_service = False
-conf_lock = False
+_configuration_lock = threading.Lock()
+_cached_config_xml = None
+_config_file_mtime = 0.0
 xbmcIsPlaying = 0
 input_request = False
 dictModules = {}
@@ -533,17 +536,32 @@ def standby_devices():
 
 @log.log_function()
 def load_config():
-    global conf_lock
-    while conf_lock:
-        time.sleep(0.2)
-    conf_lock = True
-    if os.path.exists(configFile):
-        config_file = open(configFile, 'r')
-        config_text = config_file.read()
-        config_file.close()
-    else:
-        config_text = ''
-    if config_text == '':
+    global _configuration_lock, _cached_config_xml, _config_file_mtime, configFile
+    with _configuration_lock:
+        if os.path.exists(configFile):
+            current_mtime = os.path.getmtime(configFile)
+            if _cached_config_xml is not None and current_mtime == _config_file_mtime:
+                return _cached_config_xml
+            
+            try:
+                with open(configFile, 'r') as config_file:
+                    config_text = config_file.read()
+            except Exception as e:
+                log.log(f'Error reading config file {configFile}: {e}', log.ERROR)
+                config_text = ''
+
+            if config_text:
+                try:
+                    xml_conf = minidom.parseString(config_text)
+                    _cached_config_xml = xml_conf
+                    _config_file_mtime = current_mtime
+                    return xml_conf
+                except Exception as e:
+                    log.log(f'Error parsing XML from {configFile}: {e}', log.ERROR)
+                    # Fall through to create default config if parsing fails
+            # If config_text is empty or parsing failed, fall through to create default
+        
+        # Create default XML if file doesn't exist or was empty/corrupt
         xml_conf = minidom.Document()
         xml_main = xml_conf.createElement('libreelec')
         xml_conf.appendChild(xml_main)
@@ -551,22 +569,23 @@ def load_config():
         xml_main.appendChild(xml_sub)
         xml_sub = xml_conf.createElement('settings')
         xml_main.appendChild(xml_sub)
-        config_text = xml_conf.toprettyxml()
-    else:
-        xml_conf = minidom.parseString(config_text)
-    conf_lock = False
-    return xml_conf
+        
+        _cached_config_xml = xml_conf
+        _config_file_mtime = 0.0 # Indicates in-memory default
+        return xml_conf
 
 
 @log.log_function()
 def save_config(xml_conf):
-    global configFile, conf_lock
-    while conf_lock:
-        time.sleep(0.2)
-    conf_lock = True
-    with open(configFile, 'w') as config_file:
-        config_file.write(xml_conf.toprettyxml())
-    conf_lock = False
+    global configFile, _configuration_lock, _cached_config_xml, _config_file_mtime
+    with _configuration_lock:
+        try:
+            with open(configFile, 'w') as config_file:
+                config_file.write(xml_conf.toprettyxml())
+            _cached_config_xml = xml_conf
+            _config_file_mtime = os.path.getmtime(configFile)
+        except Exception as e:
+            log.log(f'Error saving config file {configFile}: {e}', log.ERROR)
 
 
 @log.log_function()

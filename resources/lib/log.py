@@ -80,7 +80,6 @@ def log_function(level=_DEFAULT):
                     obj = args[0]
                     object_state = inspect_object(obj)
                     _log(header + object_state, ERROR)
-                e.__traceback__ = None
         return _log_function_2
     return _log_function_1
 

@@ -7,6 +7,7 @@ import glob
 import os
 import re
 import shutil
+import subprocess # Added import
 import tarfile
 from xml.dom import minidom
 
@@ -378,7 +379,26 @@ class system(modules.Module):
                 '-model ' + str(self.struct['keyboard']['settings']['KeyboardType']['value']),
                 '-option "grp:alt_shift_toggle"',
                 ]
-            os_tools.execute('setxkbmap ' + ' '.join(parameters))
+            # os_tools.execute('setxkbmap ' + ' '.join(parameters))
+            try:
+                cmd_setxkbmap = ['setxkbmap'] + parameters
+                # Parameters already contain -display and other necessary flags.
+                # setxkbmap usually doesn't produce critical stdout, but stderr is important.
+                result = subprocess.run(cmd_setxkbmap, shell=False, check=False, text=True, capture_output=True)
+                if result.returncode != 0:
+                    log.log(f"setxkbmap failed with rc {result.returncode}: {result.stderr.strip()}", log.ERROR)
+                else:
+                    log.log(f"setxkbmap successful for layout {self.struct['keyboard']['settings']['KeyboardLayout1']['value']}", log.INFO)
+                    if result.stderr: # Log any non-critical stderr output
+                        log.log(f"setxkbmap stderr: {result.stderr.strip()}", log.WARNING)
+
+            except subprocess.CalledProcessError as e:
+                log.log(f"Error executing setxkbmap: {e}. Command: {' '.join(cmd_setxkbmap)}", log.ERROR)
+            except FileNotFoundError:
+                log.log(f"setxkbmap command not found. Ensure it is installed and in PATH.", log.ERROR)
+            except Exception as e:
+                log.log(f"An unexpected error occurred with setxkbmap: {e}", log.ERROR)
+
         elif self.nox_keyboard_layouts == True:
             parameter = self.struct['keyboard']['settings']['KeyboardLayout1']['value']
             log.log(f'Settings keyboard layout: {parameter}', log.INFO)
@@ -392,9 +412,22 @@ class system(modules.Module):
                 if path_to_bmap:
                     break
             if path_to_bmap:
-                command = f'loadkmap < {path_to_bmap}'
-                log.log(f'Executing {command}', log.INFO)
-                os_tools.execute(command)
+                try:
+                    with open(path_to_bmap, 'r', encoding='utf-8') as f_input: # Added encoding
+                        process = subprocess.Popen(['loadkmap'], stdin=f_input, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                        stdout, stderr = process.communicate()
+                        if process.returncode != 0:
+                            log.log(f"loadkmap failed for {path_to_bmap}: {stderr.strip()}", log.ERROR)
+                        else:
+                            log.log(f"loadkmap successful for {path_to_bmap}", log.INFO)
+                            if stdout: # Log any stdout output
+                                log.log(f"loadkmap stdout: {stdout.strip()}", log.DEBUG)
+                            if stderr: # Log any non-critical stderr output
+                                log.log(f"loadkmap stderr: {stderr.strip()}", log.WARNING)
+                except FileNotFoundError:
+                    log.log(f"loadkmap input file not found: {path_to_bmap}", log.ERROR)
+                except Exception as e:
+                    log.log(f"Error executing loadkmap for {path_to_bmap}: {e}", log.ERROR)
             else:
                 log.log('No keyboard layout found.', log.INFO)
 
@@ -499,7 +532,35 @@ class system(modules.Module):
     def set_hw_clock(self):
         # does device have an RTC?
         if os.path.exists('/proc/driver/rtc'):
-            os_tools.execute(f'{self.SET_CLOCK_CMD} 2>/dev/null')
+            # os_tools.execute(f'{self.SET_CLOCK_CMD} 2>/dev/null')
+            if self.SET_CLOCK_CMD:
+                try:
+                    # Basic split, assumes no quoted args in SET_CLOCK_CMD
+                    cmd_parts = self.SET_CLOCK_CMD.split()
+                    # Using check=False to manually check returncode and log, similar to some os_tools.execute patterns
+                    result = subprocess.run(cmd_parts, shell=False, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+                    if result.returncode == 0:
+                        log.log(f"Successfully executed: {self.SET_CLOCK_CMD}", log.DEBUG)
+                        if result.stdout:
+                             log.log(f"stdout from {self.SET_CLOCK_CMD}: {result.stdout.strip()}", log.DEBUG)
+                        if result.stderr: # Log any stderr even on success, as some tools output info here
+                             log.log(f"stderr from {self.SET_CLOCK_CMD} (success): {result.stderr.strip()}", log.WARNING)
+                    else:
+                        # Log both stdout and stderr on failure, as they might contain useful info
+                        log_msg = f"Command failed: {self.SET_CLOCK_CMD} with rc {result.returncode}"
+                        if result.stdout:
+                            log_msg += f"\nstdout: {result.stdout.strip()}"
+                        if result.stderr:
+                            log_msg += f"\nstderr: {result.stderr.strip()}"
+                        log.log(log_msg, log.ERROR)
+                except FileNotFoundError:
+                    cmd_name = self.SET_CLOCK_CMD.split()[0] if self.SET_CLOCK_CMD else "SET_CLOCK_CMD is empty"
+                    log.log(f"Command not found: {cmd_name}", log.ERROR)
+                except Exception as e: # Catch other potential errors like permission issues
+                    log.log(f"An error occurred while executing {self.SET_CLOCK_CMD}: {e}", log.ERROR)
+            else:
+                log.log("SET_CLOCK_CMD is not defined or empty.", log.WARNING)
+
 
     @log.log_function()
     def reset_soft(self, listItem=None):

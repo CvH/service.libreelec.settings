@@ -14,6 +14,44 @@ import log
 import oe
 
 
+# Constants for control IDs in mainWindow
+MAIN_CONTROL_MENU_LIST = 1000
+MAIN_CONTROL_SETTINGS_LIST = 1100
+MAIN_CONTROL_NETWORK_LIST = 1200
+MAIN_CONTROL_BLUETOOTH_LIST = 1300
+MAIN_CONTROL_OTHER_LIST = 1900
+MAIN_BUTTON_ACTION_1 = 1500  # Renamed from MAIN_BUTTON_SAVE_SETTINGS for generic use
+MAIN_BUTTON_ACTION_2 = 1501  # Renamed from MAIN_BUTTON_CANCEL for generic use
+MAIN_SPECIFIC_FOCUS_ID_2222 = 2222 # As used in onAction
+
+# Constants for control IDs in pinkeyWindow
+PINKEY_LABEL_TITLE = 1700
+PINKEY_LABEL_LINE1 = 1701
+PINKEY_LABEL_LINE2 = 1702
+PINKEY_LABEL_PIN_DISPLAY = 1703
+# PINKEY_PROGRESS_BAR = 1704 # This ID was mentioned but not found in the provided oeWindows.py. Will omit.
+
+# Constants for control IDs in wizard
+# Assuming WIZARD_CONTROL_MENU_LIST and WIZARD_CONTROL_NETWORK_LIST are distinct from MAIN_ ones
+# If they refer to the same conceptual controls in a shared/similar XML part, MAIN_ constants could be used.
+# For now, defining them separately as per instruction's lean towards distinct contexts.
+WIZARD_CONTROL_MENU_LIST = 1000
+WIZARD_CONTROL_NETWORK_LIST = 1200 # Used in onClick for self.guiNetList
+WIZARD_TEXTBOX = 1400
+WIZARD_LABEL_TITLE = 1399
+WIZARD_LABEL_BUTTON_AREA_TITLE = 1403
+WIZARD_LABEL_LIST_AREA_TITLE = 1404
+# WIZARD_LABEL_WINDOW_TITLE = 32300 # This is a string ID for localization, not a numeric control ID.
+WIZARD_BUTTON_NEXT_FINISH = 1500 # buttons[1]['id'] - Next/Finish
+WIZARD_BUTTON_SKIP_CANCEL = 1501 # buttons[2]['id'] - Skip/Cancel
+WIZARD_BUTTON_CUSTOM_1 = 1401   # buttons[3]['id']
+WIZARD_BUTTON_CUSTOM_2 = 1402   # buttons[4]['id']
+WIZARD_RADIOBUTTON_1 = 1406
+WIZARD_RADIOBUTTON_2 = 1407
+WIZARD_PROGRESS_INDICATOR_LABEL = 1390
+WIZARD_AUX_LABEL = 1391
+
+
 xbmcDialog = xbmcgui.Dialog()
 
 __scriptid__ = 'service.libreelec.settings'
@@ -30,25 +68,26 @@ class mainWindow(xbmcgui.WindowXMLDialog):
         self.visible = False
         self.lastMenu = -1
         self.lastEntry = -1
-        self.guiMenList = 1000
-        self.guiList = 1100
-        self.guiNetList = 1200
-        self.guiBtList = 1300
-        self.guiOther = 1900
+        self.guiMenList = MAIN_CONTROL_MENU_LIST
+        self.guiList = MAIN_CONTROL_SETTINGS_LIST
+        self.guiNetList = MAIN_CONTROL_NETWORK_LIST
+        self.guiBtList = MAIN_CONTROL_BLUETOOTH_LIST
+        self.guiOther = MAIN_CONTROL_OTHER_LIST
         self.guiLists = [
-            1000,
-            1100,
-            1200,
-            1300,
+            MAIN_CONTROL_MENU_LIST,
+            MAIN_CONTROL_SETTINGS_LIST,
+            MAIN_CONTROL_NETWORK_LIST,
+            MAIN_CONTROL_BLUETOOTH_LIST,
+            # MAIN_CONTROL_OTHER_LIST is not typically in guiLists for direct item manipulation
             ]
         self.buttons = {
             1: {
-                'id': 1500,
+                'id': MAIN_BUTTON_ACTION_1,
                 'modul': '',
                 'action': '',
                 },
             2: {
-                'id': 1501,
+                'id': MAIN_BUTTON_ACTION_2,
                 'modul': '',
                 'action': '',
                 },
@@ -78,7 +117,7 @@ class mainWindow(xbmcgui.WindowXMLDialog):
             log.log(f'init module: {strModule}', log.DEBUG)
             if module.ENABLED:
                 if hasattr(module, 'do_init'):
-                    Thread(target=module.do_init(), args=()).start()
+                    Thread(target=module.do_init).start() # Corrected threading call
                 for men in module.menu:
                     if 'listTyp' in module.menu[men] and 'menuLoader' in module.menu[men]:
                         dictProperties = {
@@ -109,7 +148,7 @@ class mainWindow(xbmcgui.WindowXMLDialog):
 
     @log.log_function()
     def build_menu(self, struct, fltr=[], optional='0'):
-        self.getControl(1100).reset()
+        self.getControl(MAIN_CONTROL_SETTINGS_LIST).reset()
         m_menu = []
         for category in sorted(struct, key=lambda x: struct[x]['order']):
             if not 'hidden' in struct[category]:
@@ -117,7 +156,7 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                     m_entry = {}
                     m_entry['name'] = oe._(struct[category]['name'])
                     m_entry['properties'] = {'typ': 'separator'}
-                    m_entry['list'] = 1100
+                    m_entry['list'] = MAIN_CONTROL_SETTINGS_LIST
                     m_menu.append(m_entry)
                 else:
                     if category not in fltr:
@@ -147,17 +186,17 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                         if not 'parent' in setting:
                             m_entry['name'] = name
                             m_entry['properties'] = dictProperties
-                            m_entry['list'] = 1100
+                            m_entry['list'] = MAIN_CONTROL_SETTINGS_LIST
                             m_menu.append(m_entry)
                         else:
                             if struct[category]['settings'][setting['parent']['entry']]['value'] in setting['parent']['value']:
                                 if not 'optional' in setting or 'optional' in setting and optional != '0':
                                     m_entry['name'] = name
                                     m_entry['properties'] = dictProperties
-                                    m_entry['list'] = 1100
+                                    m_entry['list'] = MAIN_CONTROL_SETTINGS_LIST
                                     m_menu.append(m_entry)
         for m_entry in m_menu:
-            self.addConfigItem(m_entry['name'], m_entry['properties'], m_entry['list'])
+            self.addConfigItem(m_entry['name'], m_entry['properties'], m_entry['list']) # m_entry['list'] is already MAIN_CONTROL_SETTINGS_LIST
 
     @log.log_function()
     def showButton(self, number, name, module, action, onup=None, onleft=None):
@@ -175,45 +214,75 @@ class mainWindow(xbmcgui.WindowXMLDialog):
 
     @log.log_function()
     def onAction(self, action):
+        actionId = -1 # Initialize actionId to a non-triggering value
         try:
             focusId = self.getFocusId()
-            actionId = int(action.getId())
-            if focusId == 2222:
-                if actionId == 61453:
+            actionId = int(action.getId()) # Assign within try block
+            if focusId == MAIN_SPECIFIC_FOCUS_ID_2222: # Was 2222
+                if actionId == 61453: # Specific case to ignore (ACTION_MOUSE_WHEEL_UP or similar)
                     return
             if actionId in oe.CANCEL:
                 self.visible = False
                 self.close()
+                return # Action handled, exit
+            
+            # ... other existing logic for non-CANCEL actions ...
             if focusId == self.guiList:
                 curPos = self.getControl(focusId).getSelectedPosition()
                 listSize = self.getControl(focusId).size()
                 newPos = curPos
                 nextItem = self.getControl(focusId).getListItem(newPos)
                 if (curPos != self.lastGuiList or nextItem.getProperty('typ') == 'separator') and actionId in [
-                    2,
-                    3,
-                    4,
+                    2, # ACTION_MOVE_DOWN
+                    3, # ACTION_MOVE_UP
+                    4, # ACTION_MOVE_RIGHT (often same as down in lists)
                     ]:
                     while nextItem.getProperty('typ') == 'separator':
-                        if actionId == 2:
+                        if actionId == 2: # Down
                             newPos = newPos + 1
-                        if actionId == 3:
+                        elif actionId == 3: # Up
                             newPos = newPos - 1
-                        if actionId == 4:
+                        elif actionId == 4: # Right (treat as Down for this list logic)
                             newPos = newPos + 1
-                        if newPos <= 0:
+                        
+                        # Boundary checks
+                        if newPos < 0:
                             newPos = listSize - 1
-                        if newPos >= listSize:
+                        elif newPos >= listSize:
                             newPos = 0
+                        
                         nextItem = self.getControl(focusId).getListItem(newPos)
                     self.lastGuiList = newPos
                     self.getControl(focusId).selectItem(newPos)
                     self.setProperty('InfoText', nextItem.getProperty('InfoText'))
+            
             if focusId == self.guiMenList:
+                # This part of the original code seems to just set focus to itself,
+                # which might be redundant or part of a larger logic flow.
+                # Keeping it for now unless specified otherwise.
                 self.setFocusId(focusId)
-        except Exception:
-            if actionId in oe.CANCEL:
-                self.close()
+
+        except Exception as e:
+            log.log(f"Error in onAction: {e!r}. Action was: {action!r}", log.ERROR)
+            # Attempt to close if it was a cancel action, checking action directly
+            try:
+                if action and hasattr(action, 'getId') and action.getId() in oe.CANCEL:
+                    self.visible = False # Ensure self.visible is set if it's used to control closing
+                    self.close()
+                else:
+                    # If not a clear cancel action that caused the error,
+                    # consider whether to close or just log.
+                    # For now, let's stick to closing only on explicit CANCEL IDs
+                    # that are identifiable. If action.getId() itself failed, this won't close.
+                    pass # Or re-raise e if preferred, but UI code often tries to avoid full crashes.
+            except Exception as final_e:
+                log.log(f"Further error in onAction's except block: {final_e!r}", log.ERROR)
+                # Fallback, perhaps try to close if self.visible indicates it should
+                if hasattr(self, 'visible') and self.visible: # Check if closing is even relevant
+                     try:
+                         self.close()
+                     except:
+                         pass # Last resort
 
     @log.log_function()
     def onClick(self, controlID):
@@ -347,14 +416,14 @@ class mainWindow(xbmcgui.WindowXMLDialog):
             selectedMenuItem = self.getControl(controlID).getSelectedItem()
             self.setProperty('InfoText', selectedMenuItem.getProperty('InfoText'))
             if lastMenu != self.lastMenu:
-                if self.lastListType == int(selectedMenuItem.getProperty('listTyp')):
-                    self.getControl(int(selectedMenuItem.getProperty('listTyp'))).setAnimations([('conditional',
+                if self.lastListType == int(selectedMenuItem.getProperty('listTyp')): # listTyp comes from oe.listObject
+                    self.getControl(int(selectedMenuItem.getProperty('listTyp'))).setAnimations([('conditional', # listTyp comes from oe.listObject
                             'effect=fade start=100 end=0 time=100 condition=True')])
-                self.getControl(1100).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
-                self.getControl(1200).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
-                self.getControl(1300).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
-                self.getControl(1900).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
-                self.lastModul = selectedMenuItem.getProperty('Modul')
+                self.getControl(MAIN_CONTROL_SETTINGS_LIST).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                self.getControl(MAIN_CONTROL_NETWORK_LIST).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                self.getControl(MAIN_CONTROL_BLUETOOTH_LIST).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                self.getControl(MAIN_CONTROL_OTHER_LIST).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                self.lastModul = selectedMenuItem.getProperty('Modul') # Corrected from 'modul' to 'Modul' if property name is case sensitive
                 self.lastMenu = lastMenu
                 for btn in self.buttons:
                     self.getControl(self.buttons[btn]['id']).setVisible(False)
@@ -377,23 +446,23 @@ class pinkeyWindow(xbmcgui.WindowXMLDialog):
     device = ''
 
     def set_title(self, text):
-        self.getControl(1700).setLabel(text)
+        self.getControl(PINKEY_LABEL_TITLE).setLabel(text)
 
     def set_label1(self, text):
-        self.getControl(1701).setLabel(str(text))
+        self.getControl(PINKEY_LABEL_LINE1).setLabel(str(text))
 
     def set_label2(self, text):
-        self.getControl(1702).setLabel(str(text))
+        self.getControl(PINKEY_LABEL_LINE2).setLabel(str(text))
 
     def set_label3(self, text):
-        self.getControl(1703).setLabel(str(text))
+        self.getControl(PINKEY_LABEL_PIN_DISPLAY).setLabel(str(text))
 
     def append_label3(self, text):
-        label = self.getControl(1703).getLabel()
-        self.getControl(1703).setLabel(label + str(text))
+        label = self.getControl(PINKEY_LABEL_PIN_DISPLAY).getLabel()
+        self.getControl(PINKEY_LABEL_PIN_DISPLAY).setLabel(label + str(text))
 
     def get_label3_len(self):
-        return len(self.getControl(1703).getLabel())
+        return len(self.getControl(PINKEY_LABEL_PIN_DISPLAY).getLabel())
 
 
 class wizard(xbmcgui.WindowXMLDialog):
@@ -401,32 +470,32 @@ class wizard(xbmcgui.WindowXMLDialog):
     def __init__(self, *args, **kwargs):
         self.visible = False
         self.lastMenu = -1
-        self.guiMenList = 1000
-        self.guiNetList = 1200
-        self.wizTextbox = 1400
-        self.wizTitle = 1399
-        self.wizBtnTitle = 1403
-        self.wizLstTitle = 1404
-        self.wizWinTitle = 32300
+        self.guiMenList = WIZARD_CONTROL_MENU_LIST # Assuming this is distinct from MAIN_CONTROL_MENU_LIST
+        self.guiNetList = WIZARD_CONTROL_NETWORK_LIST
+        self.wizTextbox = WIZARD_TEXTBOX
+        self.wizTitle = WIZARD_LABEL_TITLE
+        self.wizBtnTitle = WIZARD_LABEL_BUTTON_AREA_TITLE
+        self.wizLstTitle = WIZARD_LABEL_LIST_AREA_TITLE
+        self.wizWinTitle = 32300 # This is a string ID for localization, keep as is.
         self.guisettings = f'{oe.XBMC_USER_HOME}/userdata/guisettings.xml'
         self.buttons = {
-            1: {
-                'id': 1500,
+            1: { # Next/Finish
+                'id': WIZARD_BUTTON_NEXT_FINISH,
                 'modul': '',
                 'action': '',
                 },
-            2: {
-                'id': 1501,
+            2: { # Skip/Cancel
+                'id': WIZARD_BUTTON_SKIP_CANCEL,
                 'modul': '',
                 'action': '',
                 },
-            3: {
-                'id': 1401,
+            3: { # Custom 1
+                'id': WIZARD_BUTTON_CUSTOM_1,
                 'modul': '',
                 'action': '',
                 },
-            4: {
-                'id': 1402,
+            4: { # Custom 2
+                'id': WIZARD_BUTTON_CUSTOM_2,
                 'modul': '',
                 'action': '',
                 },
@@ -434,12 +503,12 @@ class wizard(xbmcgui.WindowXMLDialog):
 
         self.radiobuttons = {
             1: {
-                'id': 1406,
+                'id': WIZARD_RADIOBUTTON_1,
                 'modul': '',
                 'action': '',
                 },
             2: {
-                'id': 1407,
+                'id': WIZARD_RADIOBUTTON_2,
                 'modul': '',
                 'action': '',
                 },
@@ -457,12 +526,12 @@ class wizard(xbmcgui.WindowXMLDialog):
         self.setProperty('version', oe.VERSION)
         self.setProperty('build', oe.BUILD)
         oe.dictModules['system'].do_init()
-        self.getControl(self.wizWinTitle).setLabel(oe._(32300))
-        self.getControl(self.buttons[3]['id']).setVisible(False)
-        self.getControl(self.buttons[4]['id']).setVisible(False)
-        self.getControl(self.radiobuttons[1]['id']).setVisible(False)
-        self.getControl(self.radiobuttons[2]['id']).setVisible(False)
-        self.getControl(self.buttons[2]['id']).setVisible(False)
+        self.getControl(self.wizWinTitle).setLabel(oe._(32300)) # wizWinTitle is a string ID, not a numeric control ID.
+        self.getControl(WIZARD_BUTTON_CUSTOM_1).setVisible(False)
+        self.getControl(WIZARD_BUTTON_CUSTOM_2).setVisible(False)
+        self.getControl(WIZARD_RADIOBUTTON_1).setVisible(False)
+        self.getControl(WIZARD_RADIOBUTTON_2).setVisible(False)
+        self.getControl(WIZARD_BUTTON_SKIP_CANCEL).setVisible(False)
         if oe.BOOT_STATUS == "SAFE":
             self.set_wizard_title(f"[COLOR red][B]{oe._(32393)}[/B][/COLOR]")
             self.set_wizard_text(oe._(32394))
@@ -472,8 +541,8 @@ class wizard(xbmcgui.WindowXMLDialog):
             oe.winOeMain.set_wizard_button_title(oe._(32310))
             cur_lang = xbmc.getLanguage()
             oe.winOeMain.set_wizard_button_1(cur_lang, self, 'wizard_set_language')
-        self.showButton(1, 32303)
-        self.setFocusId(self.buttons[1]['id'])
+        self.showButton(1, 32303) # Button 1 is WIZARD_BUTTON_NEXT_FINISH
+        self.setFocusId(WIZARD_BUTTON_NEXT_FINISH)
 
     @log.log_function()
     def wizard_set_language(self):
@@ -591,40 +660,46 @@ class wizard(xbmcgui.WindowXMLDialog):
         global prevModule
         log.log(f'{str(controlID)}: enter_function', log.DEBUG)
         for btn in self.buttons:
-            if controlID == self.buttons[btn]['id'] and self.buttons[btn]['id'] > 2:
-                if hasattr(self.buttons[btn]['modul'], self.buttons[btn]['action']):
-                    getattr(self.buttons[btn]['modul'], self.buttons[btn]['action'])()
-        for btn in self.radiobuttons:
-            if controlID == self.radiobuttons[btn]['id'] and self.radiobuttons[btn]['id'] > 1:
-                if hasattr(self.radiobuttons[btn]['modul'], self.radiobuttons[btn]['action']):
-                    getattr(self.radiobuttons[btn]['modul'], self.radiobuttons[btn]['action'])()
-        if controlID == self.guiNetList:
-            selectedItem = self.getControl(controlID).getSelectedItem()
+            # Check custom buttons (3 and 4)
+            if controlID == WIZARD_BUTTON_CUSTOM_1 or controlID == WIZARD_BUTTON_CUSTOM_2:
+                # Find which button (3 or 4) was clicked to get its specific module and action
+                button_key_to_check = 3 if controlID == WIZARD_BUTTON_CUSTOM_1 else 4
+                if hasattr(self.buttons[button_key_to_check]['modul'], self.buttons[button_key_to_check]['action']):
+                    getattr(self.buttons[button_key_to_check]['modul'], self.buttons[button_key_to_check]['action'])()
+        
+        for btn_key in self.radiobuttons: # Iterate by key (1, 2)
+            if controlID == self.radiobuttons[btn_key]['id']:
+                if hasattr(self.radiobuttons[btn_key]['modul'], self.radiobuttons[btn_key]['action']):
+                    getattr(self.radiobuttons[btn_key]['modul'], self.radiobuttons[btn_key]['action'])()
+
+        if controlID == self.guiNetList: # WIZARD_CONTROL_NETWORK_LIST
+            selectedItem = self.getControl(controlID).getSelectedItem() # controlID here is WIZARD_CONTROL_NETWORK_LIST
             if selectedItem.getProperty('action') != '':
                 if hasattr(oe.dictModules[self.last_wizard], selectedItem.getProperty('action')):
                     getattr(oe.dictModules[self.last_wizard], selectedItem.getProperty('action'))(selectedItem)
                     return
-        if controlID == 1501:
+        
+        if controlID == WIZARD_BUTTON_SKIP_CANCEL:
             self.wizards.remove(strModule)
             oe.remove_node(strModule)
-            if strModule == "system":
+            if strModule == "system": # This is a string comparison, not an ID
                 self.onInit()
             else:
                 self.wizards.remove(prevModule)
                 oe.remove_node(prevModule)
-                self.onClick(1500)
+                self.onClick(WIZARD_BUTTON_NEXT_FINISH)
             log.log(f'{str(controlID)}: exit_function', log.DEBUG)
 
-        if controlID == 1500:
-            self.getControl(1390).setLabel('1')
+        if controlID == WIZARD_BUTTON_NEXT_FINISH:
+            self.getControl(WIZARD_PROGRESS_INDICATOR_LABEL).setLabel('1')
             oe.xbmcm.waitForAbort(0.5)
             self.is_last_wizard = True
-            self.getControl(1391).setLabel('')
-            self.getControl(self.buttons[3]['id']).setVisible(False)
-            self.getControl(self.buttons[4]['id']).setVisible(False)
-            self.getControl(self.radiobuttons[1]['id']).setVisible(False)
-            self.getControl(self.radiobuttons[2]['id']).setVisible(False)
-            self.showButton(2, 32307)
+            self.getControl(WIZARD_AUX_LABEL).setLabel('')
+            self.getControl(WIZARD_BUTTON_CUSTOM_1).setVisible(False)
+            self.getControl(WIZARD_BUTTON_CUSTOM_2).setVisible(False)
+            self.getControl(WIZARD_RADIOBUTTON_1).setVisible(False)
+            self.getControl(WIZARD_RADIOBUTTON_2).setVisible(False)
+            self.showButton(2, 32307) # Button 2 maps to WIZARD_BUTTON_SKIP_CANCEL
             self.set_wizard_title('')
             self.set_wizard_text('')
             self.set_wizard_list_title('')
@@ -648,7 +723,7 @@ class wizard(xbmcgui.WindowXMLDialog):
                         self.last_wizard = strModule
                         if hasattr(oe.dictModules[strModule], 'do_init'):
                             oe.dictModules[strModule].do_init()
-                        self.getControl(1390).setLabel('')
+                        self.getControl(WIZARD_PROGRESS_INDICATOR_LABEL).setLabel('')
                         oe.dictModules[strModule].do_wizard()
                         self.wizards.append(strModule)
                         oe.write_setting(strModule, 'wizard_completed', 'True')

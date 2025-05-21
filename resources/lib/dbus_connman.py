@@ -44,14 +44,14 @@ class Agent(dbus_utils.Agent):
         self.cancel()
 
     def cancel(self):
-        pass
+        pass # Interface method, no specific action needed here
 
     @ravel.method(
         in_signature='',
         out_signature=''
     )
     def Release(self):
-        pass
+        pass # Interface method, no specific action needed here
 
     @ravel.method(
         in_signature='os',
@@ -67,7 +67,7 @@ class Agent(dbus_utils.Agent):
         arg_keys=['service', 'url']
     )
     def RequestBrowser(self, path, url):
-        raise NotImplementedError
+        pass # Method not implemented
 
     @ravel.method(
         in_signature='oa{sv}',
