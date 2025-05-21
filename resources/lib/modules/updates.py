@@ -174,10 +174,10 @@ class updates(modules.Module):
 
     @log.log_function()
     def start_service(self):
-            self.is_service = True
-            self.load_values()
-            self.set_auto_update()
-            del self.is_service
+        self.is_service = True
+        self.load_values()
+        self.set_auto_update()
+        del self.is_service
 
     @log.log_function()
     def stop_service(self):
@@ -217,8 +217,8 @@ class updates(modules.Module):
                     with open(os.path.join(root, dir, 'status'), 'r') as infile:
                         for line in [x for x in infile if x.replace('\n', '') == 'connected']:
                             return dir.split("-")[0]
-                except:
-                    pass
+                    except OSError as e:
+                        log.log(f"Error reading GPU status for {dir}: {e}", log.DEBUG)
             break
         return 'card0'
 
@@ -229,18 +229,21 @@ class updates(modules.Module):
         gpu_driver = ""
         gpu_card = self.get_gpu_card()
         log.log(f'Using card: {gpu_card}', log.DEBUG)
-        gpu_path = os_tools.execute(f'/usr/bin/udevadm info --name=/dev/dri/{gpu_card} --query path 2>/dev/null', get_result=True, output_err_msg=False).replace('\n','')
+        gpu_path = os_tools.execute(
+            f'/usr/bin/udevadm info --name=/dev/dri/{gpu_card} --query path 2>/dev/null', get_result=True, output_err_msg=False).replace('\n', '')
         log.log(f'gpu path: {gpu_path}', log.DEBUG)
         if gpu_path:
             drv_path = os.path.dirname(os.path.dirname(gpu_path))
-            props = os_tools.execute(f'/usr/bin/udevadm info --path={drv_path} --query=property 2>/dev/null', get_result=True, output_err_msg=False)
+            props = os_tools.execute(
+                f'/usr/bin/udevadm info --path={drv_path} --query=property 2>/dev/null', get_result=True, output_err_msg=False)
             if props:
                 for key, value in [x.strip().split('=') for x in props.strip().split('\n')]:
                     gpu_props[key] = value
             log.log(f'gpu props: {gpu_props}', log.DEBUG)
             gpu_driver = gpu_props.get("DRIVER", "")
         if not gpu_driver:
-            gpu_driver = os_tools.execute('lspci -k | grep -m1 -A999 "VGA compatible controller" | grep -m1 "Kernel driver in use" | cut -d" " -f5', get_result=True).replace('\n','')
+            gpu_driver = os_tools.execute(
+                'lspci -k | grep -m1 -A999 "VGA compatible controller" | grep -m1 "Kernel driver in use" | cut -d" " -f5', get_result=True).replace('\n', '')
         if gpu_driver == 'nvidia' and os.path.realpath('/var/lib/nvidia_drv.so').endswith('nvidia-legacy_drv.so'):
             gpu_driver = 'nvidia-legacy'
         log.log(f'gpu driver: {gpu_driver}', log.DEBUG)
@@ -249,7 +252,8 @@ class updates(modules.Module):
     @log.log_function()
     def get_hardware_flags_dtflag(self):
         if os.path.exists('/usr/bin/dtflag'):
-            dtflag = os_tools.execute('/usr/bin/dtflag', get_result=True).rstrip('\x00\n')
+            dtflag = os_tools.execute(
+                '/usr/bin/dtflag', get_result=True).rstrip('\x00\n')
         else:
             dtflag = "unknown"
         log.log(f'ARM board: {dtflag}', log.DEBUG)
@@ -259,10 +263,11 @@ class updates(modules.Module):
     def get_hardware_flags(self):
         if oe.PROJECT == "Generic":
             return self.get_hardware_flags_x86_64()
-        elif oe.ARCHITECTURE.split('.')[1] in ['aarch64', 'arm' ]:
+        elif oe.ARCHITECTURE.split('.')[1] in ['aarch64', 'arm']:
             return self.get_hardware_flags_dtflag()
         else:
-            log.log(f'Project is {oe.PROJECT}, no hardware flag available', log.DEBUG)
+            log.log(
+                f'Project is {oe.PROJECT}, no hardware flag available', log.DEBUG)
             return ''
 
     @log.log_function()
@@ -310,15 +315,20 @@ class updates(modules.Module):
         # RPi4/RPi400/RPi5 EEPROM updating
         if os.path.isfile('/usr/bin/rpi-eeprom-update'):
             self.rpi_flashing_state = self.get_rpi_flashing_state()
-            log.log(f'RPi flashing state: {self.rpi_flashing_state}', log.DEBUG)
+            log.log(
+                f'RPi flashing state: {self.rpi_flashing_state}', log.DEBUG)
             if self.rpi_flashing_state['incompatible']:
                 self.struct['rpieeprom']['hidden'] = 'true'
             else:
-                self.struct['rpieeprom']['settings']['bootloader']['value'] = 'true' if os.path.isfile('/flash/pieeprom.upd') else 'false'
-                self.struct['rpieeprom']['settings']['bootloader']['name'] = f"{oe._(32024)} ({self.rpi_flashing_state['bootloader']['state']})"
+                self.struct['rpieeprom']['settings']['bootloader']['value'] = 'true' if os.path.isfile(
+                    '/flash/pieeprom.upd') else 'false'
+                self.struct['rpieeprom']['settings']['bootloader'][
+                    'name'] = f"{oe._(32024)} ({self.rpi_flashing_state['bootloader']['state']})"
                 if oe.DEVICE == 'RPi4':
-                    self.struct['rpieeprom']['settings']['vl805']['value'] = 'true' if os.path.isfile('/flash/vl805.bin') else 'false'
-                    self.struct['rpieeprom']['settings']['vl805']['name'] = f"{oe._(32026)} ({self.rpi_flashing_state['vl805']['state']})"
+                    self.struct['rpieeprom']['settings']['vl805']['value'] = 'true' if os.path.isfile(
+                        '/flash/vl805.bin') else 'false'
+                    self.struct['rpieeprom']['settings']['vl805'][
+                        'name'] = f"{oe._(32026)} ({self.rpi_flashing_state['vl805']['state']})"
                 else:
                     self.struct['rpieeprom']['settings']['vl805']['hidden'] = 'true'
         else:
@@ -330,8 +340,10 @@ class updates(modules.Module):
 
     @log.log_function()
     def set_value(self, listItem):
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['value'] = listItem.getProperty('value')
-        oe.write_setting('updates', listItem.getProperty('entry'), str(listItem.getProperty('value')))
+        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty(
+            'entry')]['value'] = listItem.getProperty('value')
+        oe.write_setting('updates', listItem.getProperty(
+            'entry'), str(listItem.getProperty('value')))
 
     @log.log_function()
     def set_auto_update(self, listItem=None):
@@ -343,7 +355,8 @@ class updates(modules.Module):
             else:
                 self.update_thread = updateThread(oe)
                 self.update_thread.start()
-            log.log(str(self.struct['update']['settings']['AutoUpdate']['value']), log.INFO)
+            log.log(str(self.struct['update']['settings']
+                    ['AutoUpdate']['value']), log.INFO)
 
     @log.log_function()
     def set_channel(self, listItem=None):
@@ -371,21 +384,21 @@ class updates(modules.Module):
         b_builder = b_items[0]
 
         if (a_builder == b_builder):
-          try:
-            a_float = float(a_items[1])
-          except:
-            log.log(f"invalid channel name: '{a}'", log.WARNING)
-            a_float = 0
-          try:
-            b_float = float(b_items[1])
-          except:
-            log.log(f"invalid channel name: '{b}'", log.WARNING)
-            b_float = 0
-          return (b_float - a_float)
+            try:
+                a_float = float(a_items[1])
+            except ValueError as e:
+                log.log(f"Invalid channel name (float conversion failed for {a}): {e}", log.WARNING)
+                a_float = 0
+            try:
+                b_float = float(b_items[1])
+            except ValueError as e:
+                log.log(f"Invalid channel name (float conversion failed for {b}): {e}", log.WARNING)
+                b_float = 0
+            return (b_float - a_float)
         elif (a_builder < b_builder):
-          return -1
+            return -1
         elif (a_builder > b_builder):
-          return +1
+            return +1
 
     @log.log_function()
     def get_channels(self):
@@ -398,7 +411,7 @@ class updates(modules.Module):
                     channel_version = channel.split('-')[1]
                 except IndexError:
                     channel_version = False
-                if channel_version and channel_version.replace('.','',1).isdigit():
+                if channel_version and channel_version.replace('.', '', 1).isdigit():
                     channel_version = float(channel_version)
                 else:
                     channel_version = False
@@ -431,7 +444,8 @@ class updates(modules.Module):
             else:
                 version = oe.VERSION
             if self.struct['update']['settings']['Build']['value']:
-                self.update_file = self.update_json[self.struct['update']['settings']['Channel']['value']]['url'] + self.get_available_builds(self.struct['update']['settings']['Build']['value'])
+                self.update_file = self.update_json[self.struct['update']['settings']['Channel']['value']
+                                                    ]['url'] + self.get_available_builds(self.struct['update']['settings']['Build']['value'])
                 message = f"{oe._(32188)}: {version}\n{oe._(32187)}: {self.struct['update']['settings']['Build']['value']}\n{oe._(32180)}"
                 answer = xbmcDialog.yesno('LibreELEC Update', message)
                 xbmcDialog = None
@@ -458,8 +472,9 @@ class updates(modules.Module):
         update_json = self.get_json()
         if self.struct['update']['settings']['ShowCustomChannels']['value'] == '1':
             custom_urls = []
-            for i in 1,2,3:
-                custom_urls.append(self.struct['update']['settings'][f'CustomChannel{str(i)}']['value'])
+            for i in 1, 2, 3:
+                custom_urls.append(
+                    self.struct['update']['settings'][f'CustomChannel{str(i)}']['value'])
             for custom_url in custom_urls:
                 if custom_url:
                     custom_update_json = self.get_json(custom_url)
@@ -468,7 +483,8 @@ class updates(modules.Module):
                             update_json[channel] = custom_update_json[channel]
                     elif notify_error:
                         ok_window = xbmcgui.Dialog()
-                        answer = ok_window.ok(oe._(32191), f'Custom URL is invalid, or currently inaccessible.\n\n{custom_url}')
+                        answer = ok_window.ok(oe._(
+                            32191), f'Custom URL is invalid, or currently inaccessible.\n\n{custom_url}')
                         if not answer:
                             return
         return update_json
@@ -525,7 +541,8 @@ class updates(modules.Module):
                     else:
                         matches = []
                         try:
-                            matches = regex.findall(self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]['file']['name'])
+                            matches = regex.findall(
+                                self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]['file']['name'])
                         except KeyError:
                             pass
                         if matches:
@@ -534,14 +551,17 @@ class updates(modules.Module):
                             # The same release could have tarballs and images. Prioritize tarball in response.
                             # images and uboot images in same release[i] entry are mutually exclusive.
                             if 'file' in self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]:
-                                update_files.append(pretty_filename(self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]['file']['name']))
+                                update_files.append(pretty_filename(
+                                    self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]['file']['name']))
                                 continue
                             if 'image' in self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]:
-                                update_files.append(pretty_filename(self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]['image']['name']))
+                                update_files.append(pretty_filename(
+                                    self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]['image']['name']))
                                 continue
                             if 'uboot' in self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]:
                                 for uboot_image_data in self.update_json[channel]['project'][oe.ARCHITECTURE]['releases'][i]['uboot']:
-                                    update_files.append(pretty_filename(uboot_image_data['name']))
+                                    update_files.append(
+                                        pretty_filename(uboot_image_data['name']))
 
         return build if build else update_files
 
@@ -560,7 +580,7 @@ class updates(modules.Module):
             version = oe.VERSION
         url = f'{self.UPDATE_REQUEST_URL}?i={oe.url_quote(systemid)}&d={oe.url_quote(oe.DISTRIBUTION)}&pa={oe.url_quote(oe.ARCHITECTURE)}&v={oe.url_quote(version)}&f={oe.url_quote(self.hardware_flags)}'
         if oe.BUILDER_NAME:
-           url += f'&b={oe.url_quote(oe.BUILDER_NAME)}'
+            url += f'&b={oe.url_quote(oe.BUILDER_NAME)}'
 
         log.log(f'URL: {url}', log.DEBUG)
         update_json = oe.load_url(url)
@@ -569,11 +589,12 @@ class updates(modules.Module):
             update_json = json.loads(update_json)
             self.last_update_check = time.time()
             if 'update' in update_json['data'] and 'folder' in update_json['data']:
-                self.update_file = self.UPDATE_DOWNLOAD_URL % (update_json['data']['folder'], update_json['data']['update'])
+                self.update_file = self.UPDATE_DOWNLOAD_URL % (
+                    update_json['data']['folder'], update_json['data']['update'])
                 if self.struct['update']['settings']['UpdateNotify']['value'] == '1':
                     # update available message
                     oe.notify(oe._(32363), oe._(32364))
-                if self.struct['update']['settings']['AutoUpdate']['value'] == 'auto' and force == False:
+                if self.struct['update']['settings']['AutoUpdate']['value'] == 'auto' and not force:
                     self.update_in_progress = True
                     self.do_autoupdate(None, True)
 
@@ -582,40 +603,42 @@ class updates(modules.Module):
         if hasattr(self, 'update_file'):
             if not os.path.exists(self.LOCAL_UPDATE_DIR):
                 os.makedirs(self.LOCAL_UPDATE_DIR)
-            downloaded = oe.download_file(self.update_file, oe.TEMP + 'update_file', silent)
+            downloaded = oe.download_file(
+                self.update_file, oe.TEMP + 'update_file', silent)
             if downloaded:
                 self.update_file = self.update_file.split('/')[-1]
                 if self.struct['update']['settings']['UpdateNotify']['value'] == '1':
                     # update download complete message
                     oe.notify(oe._(32363), oe._(32366))
-                shutil.move(oe.TEMP + 'update_file', self.LOCAL_UPDATE_DIR + self.update_file)
+                shutil.move(oe.TEMP + 'update_file',
+                            self.LOCAL_UPDATE_DIR + self.update_file)
                 os.sync()
-                if silent == False:
+                    if not silent:
                     oe.winOeMain.close()
                     oe.xbmcm.waitForAbort(1)
                     os_tools.execute('/usr/bin/systemctl --no-block reboot')
             else:
                 delattr(self, 'update_in_progress')
 
-
     def get_rpi_flashing_state(self):
         try:
             log.log('enter_function', log.DEBUG)
 
             jdata = {
-                        'EXITCODE': 'EXIT_FAILED',
-                        'BOOTLOADER_CURRENT': 0, 'BOOTLOADER_LATEST': 0,
-                        'VL805_CURRENT': '', 'VL805_LATEST': ''
-                    }
+                'EXITCODE': 'EXIT_FAILED',
+                'BOOTLOADER_CURRENT': 0, 'BOOTLOADER_LATEST': 0,
+                'VL805_CURRENT': '', 'VL805_LATEST': ''
+            }
 
             state = {
-                        'incompatible': True,
-                        'bootloader': {'state': '', 'current': 'unknown', 'latest': 'unknown'},
-                        'vl805': {'state': '', 'current': 'unknown', 'latest': 'unknown'}
-                    }
+                'incompatible': True,
+                'bootloader': {'state': '', 'current': 'unknown', 'latest': 'unknown'},
+                'vl805': {'state': '', 'current': 'unknown', 'latest': 'unknown'}
+            }
 
             with tempfile.NamedTemporaryFile(mode='r', delete=True) as machine_out:
-                console_output = os_tools.execute(f'/usr/bin/.rpi-eeprom-update.real -j -m "{machine_out.name}"', get_result=True, output_err_msg=False).split('\n')
+                console_output = os_tools.execute(
+                    f'/usr/bin/.rpi-eeprom-update.real -j -m "{machine_out.name}"', get_result=True, output_err_msg=False).split('\n')
                 if os.path.getsize(machine_out.name) != 0:
                     state['incompatible'] = False
                     jdata = json.load(machine_out)
@@ -624,10 +647,12 @@ class updates(modules.Module):
             log.log(f'json values: {jdata}', log.DEBUG)
 
             if jdata['BOOTLOADER_CURRENT'] != 0:
-                state['bootloader']['current'] = datetime.utcfromtimestamp(jdata['BOOTLOADER_CURRENT']).strftime('%Y-%m-%d')
+                state['bootloader']['current'] = datetime.utcfromtimestamp(
+                    jdata['BOOTLOADER_CURRENT']).strftime('%Y-%m-%d')
 
             if jdata['BOOTLOADER_LATEST'] != 0:
-                state['bootloader']['latest'] = datetime.utcfromtimestamp(jdata['BOOTLOADER_LATEST']).strftime('%Y-%m-%d')
+                state['bootloader']['latest'] = datetime.utcfromtimestamp(
+                    jdata['BOOTLOADER_LATEST']).strftime('%Y-%m-%d')
 
             if jdata['VL805_CURRENT']:
                 state['vl805']['current'] = jdata['VL805_CURRENT']
@@ -637,14 +662,18 @@ class updates(modules.Module):
 
             if jdata['EXITCODE'] in ['EXIT_SUCCESS', 'EXIT_UPDATE_REQUIRED']:
                 if jdata['BOOTLOADER_LATEST'] > jdata['BOOTLOADER_CURRENT']:
-                    state['bootloader']['state'] = oe._(32028) % (state['bootloader']['current'], state['bootloader']['latest'])
+                    state['bootloader']['state'] = oe._(32028) % (
+                        state['bootloader']['current'], state['bootloader']['latest'])
                 else:
-                    state['bootloader']['state'] = oe._(32029) % state['bootloader']['current']
+                    state['bootloader']['state'] = oe._(
+                        32029) % state['bootloader']['current']
 
                 if jdata['VL805_LATEST'] and jdata['VL805_LATEST'] > jdata['VL805_CURRENT']:
-                    state['vl805']['state'] = oe._(32028) % (state['vl805']['current'], state['vl805']['latest'])
+                    state['vl805']['state'] = oe._(32028) % (
+                        state['vl805']['current'], state['vl805']['latest'])
                 else:
-                    state['vl805']['state'] = oe._(32029) % state['vl805']['current']
+                    state['vl805']['state'] = oe._(
+                        32029) % state['vl805']['current']
 
             log.log(f'state: {state}', log.DEBUG)
             log.log('exit_function', log.DEBUG)
@@ -653,15 +682,16 @@ class updates(modules.Module):
             log.log(f'ERROR: ({repr(e)})')
             return {'incompatible': True}
 
-
     @log.log_function()
     def update_rpi_firmware(self, listItem):
         value = 'false'
         if xbmcgui.Dialog().yesno(oe._(32022), f'{oe._(32023)}\n\n{oe._(32326)}'):
             # available update is newer than installed version
             if self.rpi_flashing_state[listItem.getProperty('entry')]['current'] < self.rpi_flashing_state[listItem.getProperty('entry')]['latest']:
-                update_result = os_tools.execute(f'/usr/bin/rpi-eeprom-update -A {listItem.getProperty("entry")}', get_result=True)
-                log.log(f'rpi-eeprom-update result: {update_result}', log.DEBUG)
+                update_result = os_tools.execute(
+                    f'/usr/bin/rpi-eeprom-update -A {listItem.getProperty("entry")}', get_result=True)
+                log.log(
+                    f'rpi-eeprom-update result: {update_result}', log.DEBUG)
                 if update_result:
                     xbmcgui.Dialog().ok(oe._(32022), oe._(32023))
                     value = 'true'
@@ -673,7 +703,8 @@ class updates(modules.Module):
         # user chose no but vl805 update already queued
         elif listItem.getProperty('entry') == 'vl805' and os.path.isfile('/flash/vl805.bin'):
             value = 'true'
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['value'] = value
+        self.struct[listItem.getProperty(
+            'category')]['settings'][listItem.getProperty('entry')]['value'] = value
 
 
 class updateThread(threading.Thread):
@@ -691,7 +722,7 @@ class updateThread(threading.Thread):
 
     @log.log_function()
     def run(self):
-        while self.stopped == False:
+        while not self.stopped:
             if not xbmc.Player().isPlaying():
                 oe.dictModules['updates'].check_updates_v2()
             if not hasattr(oe.dictModules['updates'], 'update_in_progress'):

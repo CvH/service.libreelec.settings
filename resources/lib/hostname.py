@@ -19,3 +19,5 @@ def set_hostname(hostname):
             out_file.write(f'{hostname}\n')
         os_tools.execute('systemctl restart network-base')
         os_tools.execute('systemctl try-restart avahi-daemon wsdd2')
+        return True
+    return False

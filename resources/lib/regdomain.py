@@ -190,7 +190,7 @@ def get_regdomain():
     if not os.path.isfile(config.REGDOMAIN_CONF):
         return REGDOMAIN_DEFAULT
     code = f'({open(config.REGDOMAIN_CONF).readline().rstrip()[-2:]})'
-    regdomain = next((l for l in REGDOMAIN_LIST if code in l),
+    regdomain = next((line_entry for line_entry in REGDOMAIN_LIST if code in line_entry),
                      REGDOMAIN_DEFAULT)
     return regdomain
 

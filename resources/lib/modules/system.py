@@ -23,6 +23,7 @@ import timezone
 
 xbmcDialog = xbmcgui.Dialog()
 
+
 class system(modules.Module):
 
     ENABLED = False
@@ -43,7 +44,7 @@ class system(modules.Module):
         'menuLoader': 'load_menu',
         'listTyp': 'list',
         'InfoText': 700,
-        }}
+    }}
 
     @log.log_function()
     def __init__(self, oeMain):
@@ -68,7 +69,7 @@ class system(modules.Module):
                         'type': 'text',
                         'validate': '^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$',
                         'InfoText': 710,
-                        },
+                    },
                     'timezone': {
                         'order': 2,
                         'name': 32420,
@@ -76,9 +77,9 @@ class system(modules.Module):
                         'action': 'set_timezone',
                         'type': 'button',
                         'InfoText': 709,
-                        },
                     },
                 },
+            },
             'keyboard': {
                 'order': 2,
                 'name': 32009,
@@ -91,7 +92,7 @@ class system(modules.Module):
                         'type': 'multivalue',
                         'values': [],
                         'InfoText': 711,
-                        },
+                    },
                     'KeyboardVariant1': {
                         'order': 2,
                         'name': 32386,
@@ -100,7 +101,7 @@ class system(modules.Module):
                         'type': 'multivalue',
                         'values': [],
                         'InfoText': 753,
-                        },
+                    },
                     'KeyboardLayout2': {
                         'order': 3,
                         'name': 32010,
@@ -109,7 +110,7 @@ class system(modules.Module):
                         'type': 'multivalue',
                         'values': [],
                         'InfoText': 712,
-                        },
+                    },
                     'KeyboardVariant2': {
                         'order': 4,
                         'name': 32387,
@@ -118,7 +119,7 @@ class system(modules.Module):
                         'type': 'multivalue',
                         'values': [],
                         'InfoText': 754,
-                        },
+                    },
                     'KeyboardType': {
                         'order': 5,
                         'name': 32330,
@@ -127,9 +128,9 @@ class system(modules.Module):
                         'type': 'multivalue',
                         'values': [],
                         'InfoText': 713,
-                        },
                     },
                 },
+            },
             'pinlock': {
                 'order': 3,
                 'name': 32192,
@@ -141,7 +142,7 @@ class system(modules.Module):
                         'action': 'init_pinlock',
                         'type': 'bool',
                         'InfoText': 747,
-                        },
+                    },
                     'pinlock_pin': {
                         'order': 2,
                         'name': 32194,
@@ -152,10 +153,10 @@ class system(modules.Module):
                         'parent': {
                             'entry': 'pinlock_enable',
                             'value': ['1'],
-                            },
                         },
                     },
                 },
+            },
             'backup': {
                 'order': 4,
                 'name': 32371,
@@ -167,7 +168,7 @@ class system(modules.Module):
                         'type': 'button',
                         'InfoText': 722,
                         'order': 1,
-                        },
+                    },
                     'restore': {
                         'name': 32373,
                         'value': '0',
@@ -175,9 +176,9 @@ class system(modules.Module):
                         'type': 'button',
                         'InfoText': 723,
                         'order': 2,
-                        },
                     },
                 },
+            },
             'reset': {
                 'order': 5,
                 'name': 32323,
@@ -189,7 +190,7 @@ class system(modules.Module):
                         'type': 'button',
                         'InfoText': 724,
                         'order': 1,
-                        },
+                    },
                     'oe_reset': {
                         'name': 32325,
                         'value': '0',
@@ -197,9 +198,9 @@ class system(modules.Module):
                         'type': 'button',
                         'InfoText': 725,
                         'order': 2,
-                        },
                     },
                 },
+            },
             'debug': {
                 'order': 6,
                 'name': 32376,
@@ -211,7 +212,7 @@ class system(modules.Module):
                         'type': 'button',
                         'InfoText': 718,
                         'order': 1,
-                        },
+                    },
                     'paste_crash': {
                         'name': 32378,
                         'value': '0',
@@ -219,9 +220,9 @@ class system(modules.Module):
                         'type': 'button',
                         'InfoText': 719,
                         'order': 2,
-                        },
                     },
                 },
+            },
             'journal': {
                 'order': 7,
                 'name': 32410,
@@ -286,28 +287,28 @@ class system(modules.Module):
             arrLayouts,
             arrTypes,
             self.arrVariants,
-            ) = self.get_keyboard_layouts()
-        if not arrTypes is None:
+        ) = self.get_keyboard_layouts()
+        if arrTypes is not None:
             self.struct['keyboard']['settings']['KeyboardType']['values'] = arrTypes
             value = oe.read_setting('system', 'KeyboardType')
-            if not value is None:
+            if value is not None:
                 self.struct['keyboard']['settings']['KeyboardType']['value'] = value
-        if not arrLayouts is None:
+        if arrLayouts is not None:
             self.struct['keyboard']['settings']['KeyboardLayout1']['values'] = arrLayouts
             self.struct['keyboard']['settings']['KeyboardLayout2']['values'] = arrLayouts
             value = oe.read_setting('system', 'KeyboardLayout1')
-            if not value is None:
+            if value is not None:
                 self.struct['keyboard']['settings']['KeyboardLayout1']['value'] = value
             value = oe.read_setting('system', 'KeyboardVariant1')
-            if not value is None:
+            if value is not None:
                 self.struct['keyboard']['settings']['KeyboardVariant1']['value'] = value
             value = oe.read_setting('system', 'KeyboardLayout2')
-            if not value is None:
+            if value is not None:
                 self.struct['keyboard']['settings']['KeyboardLayout2']['value'] = value
             value = oe.read_setting('system', 'KeyboardVariant2')
-            if not value is None:
+            if value is not None:
                 self.struct['keyboard']['settings']['KeyboardVariant2']['value'] = value
-            if not arrTypes == None:
+            if arrTypes is not None: # Changed from '== None' to 'is not None' for consistency, was '!=None' essentially
                 self.keyboard_layouts = True
         if not os.path.exists('/usr/bin/setxkbmap'):
             self.struct['keyboard']['settings']['KeyboardLayout2']['hidden'] = 'true'
@@ -319,9 +320,11 @@ class system(modules.Module):
         self.struct['ident']['settings']['hostname']['value'] = hostname.get_hostname()
         # Timezone
         self.struct['ident']['settings']['timezone']['value'] = timezone.get_timezone()
-        self.struct['ident']['settings']['timezone']['name'] = f"{oe._(32420)} ({self.struct['ident']['settings']['timezone']['value']})"
+        self.struct['ident']['settings']['timezone'][
+            'name'] = f"{oe._(32420)} ({self.struct['ident']['settings']['timezone']['value']})"
         # PIN Lock
-        self.struct['pinlock']['settings']['pinlock_enable']['value'] = '1' if oe.PIN.isEnabled() else '0'
+        self.struct['pinlock']['settings']['pinlock_enable']['value'] = '1' if oe.PIN.isEnabled(
+        ) else '0'
 
         # Journal
         self.get_setting('journal', 'journal_persistent')
@@ -334,17 +337,19 @@ class system(modules.Module):
 
     def get_setting(self, group, setting, allowEmpty=False):
         value = oe.read_setting('system', setting)
-        if not value is None and not (allowEmpty == False and value == ''):
+        if value is not None and not (allowEmpty is False and value == ''): # E712 for allowEmpty == False
             self.struct[group]['settings'][setting]['value'] = value
 
     @log.log_function()
     def set_value(self, listItem):
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['value'] = listItem.getProperty('value')
-        oe.write_setting('system', listItem.getProperty('entry'), str(listItem.getProperty('value')))
+        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty(
+            'entry')]['value'] = listItem.getProperty('value')
+        oe.write_setting('system', listItem.getProperty(
+            'entry'), str(listItem.getProperty('value')))
 
     @log.log_function()
     def set_keyboard_layout(self, listItem=None):
-        if not listItem == None:
+        if listItem is not None:
             if listItem.getProperty('entry') == 'KeyboardLayout1':
                 if self.struct['keyboard']['settings']['KeyboardLayout1']['value'] != listItem.getProperty('value'):
                     self.struct['keyboard']['settings']['KeyboardVariant1']['value'] = ''
@@ -352,34 +357,37 @@ class system(modules.Module):
                 if self.struct['keyboard']['settings']['KeyboardLayout2']['value'] != listItem.getProperty('value'):
                     self.struct['keyboard']['settings']['KeyboardVariant2']['value'] = ''
             self.set_value(listItem)
-        if self.keyboard_layouts == True:
+        if self.keyboard_layouts: # E712
             self.struct['keyboard']['settings']['KeyboardVariant1']['values'] = self.arrVariants[self.struct['keyboard']['settings'
-                    ]['KeyboardLayout1']['value']]
+                                                                                                                         ]['KeyboardLayout1']['value']]
             self.struct['keyboard']['settings']['KeyboardVariant2']['values'] = self.arrVariants[self.struct['keyboard']['settings'
-                    ]['KeyboardLayout2']['value']]
-            log.log(str(self.struct['keyboard']['settings']['KeyboardLayout1']['value']) + ','
-                            + str(self.struct['keyboard']['settings']['KeyboardLayout2']['value']) + ' ' + '-model '
-                            + str(self.struct['keyboard']['settings']['KeyboardType']['value']), log.INFO)
+                                                                                                                         ]['KeyboardLayout2']['value']]
+            log.log(str(self.struct['keyboard']['settings']['KeyboardLayout1']['value']) + ',' +
+                    str(self.struct['keyboard']['settings']['KeyboardLayout2']['value']) + ' ' + '-model ' +
+                    str(self.struct['keyboard']['settings']['KeyboardType']['value']), log.INFO)
             if not os.path.exists(os.path.dirname(self.UDEV_KEYBOARD_INFO)):
                 os.makedirs(os.path.dirname(self.UDEV_KEYBOARD_INFO))
             config_file = open(self.UDEV_KEYBOARD_INFO, 'w')
-            config_file.write(f"XKBMODEL=\"{self.struct['keyboard']['settings']['KeyboardType']['value']}\"\n")
+            config_file.write(
+                f"XKBMODEL=\"{self.struct['keyboard']['settings']['KeyboardType']['value']}\"\n")
             config_file.write(f"XKBVARIANT=\"{self.struct['keyboard']['settings']['KeyboardVariant1']['value']}, \
                                              {self.struct['keyboard']['settings']['KeyboardVariant2']['value']}\"\n")
-            config_file.write(f"XKBLAYOUT=\"{self.struct['keyboard']['settings']['KeyboardLayout1']['value']}, {self.struct['keyboard']['settings']['KeyboardLayout2']['value']}\"\n")
+            config_file.write(
+                f"XKBLAYOUT=\"{self.struct['keyboard']['settings']['KeyboardLayout1']['value']}, {self.struct['keyboard']['settings']['KeyboardLayout2']['value']}\"\n")
             config_file.write('XKBOPTIONS="grp:alt_shift_toggle"\n')
             config_file.close()
             parameters = [
                 '-display ' + os.environ['DISPLAY'],
                 '-layout ' + self.struct['keyboard']['settings']['KeyboardLayout1']['value'] + ',' + self.struct['keyboard']['settings'
-                        ]['KeyboardLayout2']['value'],
+                                                                                                                             ]['KeyboardLayout2']['value'],
                 '-variant ' + self.struct['keyboard']['settings']['KeyboardVariant1']['value'] + ',' + self.struct['keyboard']['settings'
-                        ]['KeyboardVariant2']['value'],
-                '-model ' + str(self.struct['keyboard']['settings']['KeyboardType']['value']),
+                                                                                                                               ]['KeyboardVariant2']['value'],
+                '-model ' + str(self.struct['keyboard']
+                                ['settings']['KeyboardType']['value']),
                 '-option "grp:alt_shift_toggle"',
-                ]
+            ]
             os_tools.execute('setxkbmap ' + ' '.join(parameters))
-        elif self.nox_keyboard_layouts == True:
+        elif self.nox_keyboard_layouts: # E712
             parameter = self.struct['keyboard']['settings']['KeyboardLayout1']['value']
             log.log(f'Settings keyboard layout: {parameter}', log.INFO)
             path_to_bmap = None
@@ -387,7 +395,8 @@ class system(modules.Module):
                 for f in filenames:
                     if f == f'{parameter}.bmap':
                         path_to_bmap = f'{dirpath}/{f}'
-                        log.log(f'Found keyboard layout: {path_to_bmap}', log.INFO)
+                        log.log(
+                            f'Found keyboard layout: {path_to_bmap}', log.INFO)
                         break
                 if path_to_bmap:
                     break
@@ -403,12 +412,11 @@ class system(modules.Module):
         if listItem is not None:
             self.set_value(listItem)
         value = self.struct['ident']['settings']['hostname']['value']
-        if value is not None and value != '':
+        if value is not None and value: # Simplified '!= ""'
             hostname.set_hostname(value)
 
-
     @log.log_function()
-    def set_timezone(self, listItem=None):
+    def set_timezone(self, listItem=None): # listItem is not used here, was part of an earlier pattern.
         timezones = timezone.list_timezones()
         guessed_timezone = timezone.guess_timezone()
         current_timezone = self.struct['ident']['settings']['timezone']['value']
@@ -419,18 +427,19 @@ class system(modules.Module):
         else:
             menu_position = 0
         xbmcDialog = xbmcgui.Dialog()
-        timezone_select = xbmcDialog.select(heading=oe._(32420), list=timezones, preselect=menu_position)
+        timezone_select = xbmcDialog.select(heading=oe._(
+            32420), list=timezones, preselect=menu_position)
         log.log(f'timezone_select: {timezone_select}', log.DEBUG)
         if timezone_select > -1:
             listItem = timezones[timezone_select]
             log.log(f'listItem: {listItem}', log.DEBUG)
             self.struct['ident']['settings']['timezone']['value'] = listItem
-            self.struct['ident']['settings']['timezone']['name'] = f"{oe._(32420)} ({listItem})"
+            self.struct['ident']['settings']['timezone'][
+                'name'] = f"{oe._(32420)} ({listItem})"
             log.log(f'Setting timezone to: {timezone}', log.DEBUG)
             timezone.set_timezone(listItem)
         xbmcDialog = None
         del xbmcDialog
-
 
     @log.log_function()
     def get_keyboard_layouts(self):
@@ -457,7 +466,8 @@ class system(modules.Module):
                                     value = subnode_2.firstChild.nodeValue
                             if subnode_2.nodeName == 'description':
                                 if hasattr(subnode_2.firstChild, 'nodeValue'):
-                                    arrLayouts.append(subnode_2.firstChild.nodeValue + ':' + value)
+                                    arrLayouts.append(
+                                        subnode_2.firstChild.nodeValue + ':' + value)
                     if subnode_1.nodeName == 'variantList':
                         arrVariants[value] = [':']
                         for subnode_vl in subnode_1.childNodes:
@@ -467,11 +477,13 @@ class system(modules.Module):
                                         for subnode_ci in subnode_v.childNodes:
                                             if subnode_ci.nodeName == 'name':
                                                 if hasattr(subnode_ci.firstChild, 'nodeValue'):
-                                                    vvalue = subnode_ci.firstChild.nodeValue.replace(',', '')
+                                                    vvalue = subnode_ci.firstChild.nodeValue.replace(
+                                                        ',', '')
                                             if subnode_ci.nodeName == 'description':
                                                 if hasattr(subnode_ci.firstChild, 'nodeValue'):
                                                     try:
-                                                        arrVariants[value].append(subnode_ci.firstChild.nodeValue + ':' + vvalue)
+                                                        arrVariants[value].append(
+                                                            subnode_ci.firstChild.nodeValue + ':' + vvalue)
                                                     except:
                                                         pass
             for xml_layout in xml_conf.getElementsByTagName('model'):
@@ -483,7 +495,8 @@ class system(modules.Module):
                                     value = subnode_2.firstChild.nodeValue
                             if subnode_2.nodeName == 'description':
                                 if hasattr(subnode_2.firstChild, 'nodeValue'):
-                                    arrTypes.append(subnode_2.firstChild.nodeValue + ':' + value)
+                                    arrTypes.append(
+                                        subnode_2.firstChild.nodeValue + ':' + value)
             arrLayouts.sort()
             arrTypes.sort()
         else:
@@ -493,7 +506,7 @@ class system(modules.Module):
             arrLayouts,
             arrTypes,
             arrVariants,
-            )
+        )
 
     @log.log_function()
     def set_hw_clock(self):
@@ -517,10 +530,10 @@ class system(modules.Module):
             oe.xbmcm.waitForAbort(1)
             os_tools.execute('/usr/bin/systemctl --no-block reboot')
 
-
     @log.log_function()
     def ask_sure_reset(self, part):
-        answer = xbmcDialog.yesno(f'{part} Reset', f'{oe._(32326)}\n\n{oe._(32328)}')
+        answer = xbmcDialog.yesno(
+            f'{part} Reset', f'{oe._(32326)}\n\n{oe._(32328)}')
         if answer == 1:
             if oe.reboot_counter(30, oe._(32323)) == 1:
                 return 1
@@ -535,16 +548,17 @@ class system(modules.Module):
             try:
                 for directory in self.BACKUP_DIRS:
                     self.get_folder_size(directory)
-                log.log(f'Uncompressed backup size: {total_backup_size}', log.DEBUG)
-            except:
-                pass
-            bckDir = xbmcDialog.browse( 0,
-                                        oe._(32371),
-                                        'files',
-                                        '',
-                                        False,
-                                        False,
-                                        self.BACKUP_DESTINATION )
+                log.log(
+                    f'Uncompressed backup size: {self.total_backup_size}', log.DEBUG)
+            except Exception as e:
+                log.log(f"Error during backup size calculation: {e}", log.ERROR)
+            bckDir = xbmcDialog.browse(0,
+                                       oe._(32371),
+                                       'files',
+                                       '',
+                                       False,
+                                       False,
+                                       self.BACKUP_DESTINATION)
             log.log(f'Directory for backup: {bckDir}', log.INFO)
 
             if bckDir and os.path.exists(bckDir):
@@ -552,21 +566,23 @@ class system(modules.Module):
                 try:
                     folder_stat = os.statvfs(bckDir)
                     free_space = folder_stat.f_frsize * folder_stat.f_bavail
-                    log.log(f'Available free space for backup: {free_space}', log.DEBUG)
+                    log.log(
+                        f'Available free space for backup: {free_space}', log.DEBUG)
                     if self.total_backup_size > free_space:
                         txt = oe.split_dialog_text(oe._(32379))
-                        answer = xbmcDialog.ok('Backup', f'{txt[0]}\n{txt[1]}\n{txt[2]}')
+                        xbmcDialog.ok(
+                            'Backup', f'{txt[0]}\n{txt[1]}\n{txt[2]}')
                         return 0
-                except:
-                    log.log('Unable to determine free space available for backup.', log.DEBUG)
-                    pass
+                except Exception as e:
+                    log.log(f"Error determining free space: {e}", log.ERROR)
                 self.backup_dlg = xbmcgui.DialogProgress()
                 self.backup_dlg.create('LibreELEC', oe._(32375))
                 if not os.path.exists(self.BACKUP_DESTINATION):
                     os.makedirs(self.BACKUP_DESTINATION)
                 self.backup_file = f'{hostname.get_hostname()}-{oe.timestamp()}.tar'
                 log.log(f'Backup file: {bckDir + self.backup_file}', log.INFO)
-                tar = tarfile.open(bckDir + self.backup_file, 'w', format=tarfile.GNU_FORMAT)
+                tar = tarfile.open(bckDir + self.backup_file,
+                                   'w', format=tarfile.GNU_FORMAT)
                 for directory in self.BACKUP_DIRS:
                     self.tar_add_folder(tar, directory)
                     if self.backup_dlg is None or self.backup_dlg.iscanceled():
@@ -583,63 +599,67 @@ class system(modules.Module):
         finally:
             # possibly already closed by tar_add_folder if an error occurred
             try:
-                self.backup_dlg.close()
-            except:
-                pass
+                if self.backup_dlg:
+                    self.backup_dlg.close()
+            except Exception as e:
+                log.log(f"Error closing backup_dlg: {e}", log.ERROR)
             self.backup_dlg = None
 
     @log.log_function()
     def do_restore(self, listItem=None):
-            copy_success = 0
-            restore_file_path = xbmcDialog.browse( 1,
-                                                   oe._(32373),
-                                                   'files',
-                                                   '',
-                                                   False,
-                                                   False,
-                                                   self.BACKUP_DESTINATION )
-            # Do nothing if the dialog is cancelled - path will be the backup destination
-            if not os.path.isfile(restore_file_path):
-                return
-            # file selected that won't trigger busybox's backup restoration
-            if not restore_file_path.endswith(('.tar', '.tar.gz', '.tar.bz2', '.tar.xz')):
-                log.log(f'Error: Invalid backup file: {restore_file_path}', log.ERROR)
-                xbmcDialog.ok(oe._(32373), oe._(32374))
-                return
+        copy_success = 0
+        restore_file_path = xbmcDialog.browse(1,
+                                              oe._(32373),
+                                              'files',
+                                              '',
+                                              False,
+                                              False,
+                                              self.BACKUP_DESTINATION)
+        # Do nothing if the dialog is cancelled - path will be the backup destination
+        if not os.path.isfile(restore_file_path):
+            return
+        # file selected that won't trigger busybox's backup restoration
+        if not restore_file_path.endswith(('.tar', '.tar.gz', '.tar.bz2', '.tar.xz')):
+            log.log(
+                f'Error: Invalid backup file: {restore_file_path}', log.ERROR)
+            xbmcDialog.ok(oe._(32373), oe._(32374))
+            return
 
-            log.log(f'Restore file: {restore_file_path}', log.INFO)
-            restore_file_name = restore_file_path.split('/')[-1]
-            if os.path.exists(self.RESTORE_DIR):
-                shutil.rmtree(self.RESTORE_DIR)
-            os.makedirs(self.RESTORE_DIR)
-            folder_stat = os.statvfs(self.RESTORE_DIR)
-            file_size = os.path.getsize(restore_file_path)
-            free_space = folder_stat.f_frsize * folder_stat.f_bavail
-            if free_space > file_size * 2:
-                if os.path.exists(self.RESTORE_DIR + restore_file_name):
-                    os.remove(self.RESTORE_DIR + restore_file_name)
-                if oe.copy_file(restore_file_path, self.RESTORE_DIR + restore_file_name) != None:
-                    copy_success = 1
-                    log.log('Restore file successfully copied.', log.INFO)
-                else:
-                    log.log(f'Failed to copy restore file to: {self.RESTORE_DIR}', log.ERROR)
-                    if os.path.exists(self.RESTORE_DIR):
-                        shutil.rmtree(self.RESTORE_DIR)
+        log.log(f'Restore file: {restore_file_path}', log.INFO)
+        restore_file_name = restore_file_path.split('/')[-1]
+        if os.path.exists(self.RESTORE_DIR):
+            shutil.rmtree(self.RESTORE_DIR)
+        os.makedirs(self.RESTORE_DIR)
+        folder_stat = os.statvfs(self.RESTORE_DIR)
+        file_size = os.path.getsize(restore_file_path)
+        free_space = folder_stat.f_frsize * folder_stat.f_bavail
+        if free_space > file_size * 2:
+            if os.path.exists(self.RESTORE_DIR + restore_file_name):
+                os.remove(self.RESTORE_DIR + restore_file_name)
+            if oe.copy_file(restore_file_path, self.RESTORE_DIR + restore_file_name) is not None:
+                copy_success = 1
+                log.log('Restore file successfully copied.', log.INFO)
             else:
-                txt = oe.split_dialog_text(oe._(32379))
-                answer = xbmcDialog.ok('Restore', f'{txt[0]}\n{txt[1]}\n{txt[2]}')
-            if copy_success == 1:
-                txt = oe.split_dialog_text(oe._(32380))
-                answer = xbmcDialog.yesno('Restore', f'{txt[0]}\n{txt[1]}\n{txt[2]}')
-                if answer == 1:
-                    if oe.reboot_counter(10, oe._(32371)) == 1:
-                        oe.winOeMain.close()
-                        oe.xbmcm.waitForAbort(1)
-                        os_tools.execute('/usr/bin/systemctl --no-block reboot')
-                else:
-                    log.log('User Abort!')
-                    if os.path.exists(self.RESTORE_DIR):
-                        shutil.rmtree(self.RESTORE_DIR)
+                log.log(
+                    f'Failed to copy restore file to: {self.RESTORE_DIR}', log.ERROR)
+                if os.path.exists(self.RESTORE_DIR):
+                    shutil.rmtree(self.RESTORE_DIR)
+        else:
+            txt = oe.split_dialog_text(oe._(32379))
+            xbmcDialog.ok('Restore', f'{txt[0]}\n{txt[1]}\n{txt[2]}')
+        if copy_success == 1:
+            txt = oe.split_dialog_text(oe._(32380))
+            answer = xbmcDialog.yesno(
+                'Restore', f'{txt[0]}\n{txt[1]}\n{txt[2]}')
+            if answer == 1:
+                if oe.reboot_counter(10, oe._(32371)) == 1:
+                    oe.winOeMain.close()
+                    oe.xbmcm.waitForAbort(1)
+                    os_tools.execute('/usr/bin/systemctl --no-block reboot')
+            else:
+                log.log('User Abort!')
+                if os.path.exists(self.RESTORE_DIR):
+                    shutil.rmtree(self.RESTORE_DIR)
 
     @log.log_function()
     def do_send_system_logs(self, listItem=None):
@@ -660,7 +680,8 @@ class system(modules.Module):
                 link = result.find('http')
                 if link != -1:
                     log.log(result[link:], log.WARNING)
-                    xbmcDialog.ok(oe._(32376), f'{oe._(32418)} {result[link:]}')
+                    xbmcDialog.ok(
+                        oe._(32376), f'{oe._(32418)} {result[link:]}')
                 else:
                     xbmcDialog.ok(oe._(32376), oe._(32419))
             else:
@@ -691,14 +712,19 @@ class system(modules.Module):
                             return
                 else:
                     self.done_backup_size += os.path.getsize(itempath)
-                    log.log(f'Adding to backup: {log.asciify(itempath)}', log.DEBUG)
+                    log.log(
+                        f'Adding to backup: {log.asciify(itempath)}', log.DEBUG)
                     tar.add(itempath)
                     if hasattr(self, 'backup_dlg'):
-                        progress = round(1.0 * self.done_backup_size / self.total_backup_size * 100)
-                        self.backup_dlg.update(int(progress), f'{print_folder}\n{log.asciify(item)}')
-        except:
-            self.backup_dlg.close()
-            self.backup_dlg = None
+                        progress = round(
+                            1.0 * self.done_backup_size / self.total_backup_size * 100)
+                        self.backup_dlg.update(
+                            int(progress), f'{print_folder}\n{log.asciify(item)}')
+        except Exception as e:
+            log.log(f"Exception in tar_add_folder: {e}", log.ERROR)
+            if self.backup_dlg:
+                self.backup_dlg.close()
+                self.backup_dlg = None
             xbmcDialog.ok(oe._(32371), oe._(32402))
             raise
 
@@ -717,40 +743,41 @@ class system(modules.Module):
 
     @log.log_function()
     def init_pinlock(self, listItem=None):
-        if not listItem == None:
+        if listItem is not None:
             self.set_value(listItem)
         if self.struct['pinlock']['settings']['pinlock_enable']['value'] == '1':
             oe.PIN.enable()
         else:
             oe.PIN.disable()
-        if oe.PIN.isEnabled() and oe.PIN.isSet() == False:
+        if oe.PIN.isEnabled() and not oe.PIN.isSet(): # E712
             self.set_pinlock()
 
     @log.log_function()
-    def set_pinlock(self, listItem=None):
+    def set_pinlock(self, listItem=None): # listItem is not used
         newpin = xbmcDialog.input(oe._(32226), type=xbmcgui.INPUT_NUMERIC)
-        if len(newpin) == 4 :
-           newpinConfirm = xbmcDialog.input(oe._(32227), type=xbmcgui.INPUT_NUMERIC)
-           if newpin != newpinConfirm:
-               xbmcDialog.ok(oe._(32228), oe._(32229))
-           else:
-               oe.PIN.set(newpin)
-               xbmcDialog.ok(oe._(32230), f'{oe._(32231)}\n\n{newpin}')
+        if len(newpin) == 4:
+            newpinConfirm = xbmcDialog.input(
+                oe._(32227), type=xbmcgui.INPUT_NUMERIC)
+            if newpin != newpinConfirm:
+                xbmcDialog.ok(oe._(32228), oe._(32229))
+            else:
+                oe.PIN.set(newpin)
+                xbmcDialog.ok(oe._(32230), f'{oe._(32231)}\n\n{newpin}')
         else:
             xbmcDialog.ok(oe._(32232), oe._(32229))
-        if oe.PIN.isSet() == False:
+        if not oe.PIN.isSet(): # E712
             self.struct['pinlock']['settings']['pinlock_enable']['value'] = '0'
             oe.PIN.disable()
 
     @log.log_function()
     def do_journald(self, listItem=None):
-        if not listItem == None:
+        if listItem is not None:
             self.set_value(listItem)
             if self.struct['journal']['settings']['journal_persistent']['value'] == '0':
                 try:
                     os.remove(self.JOURNALD_CONFIG_FILE)
-                except:
-                    pass
+                except OSError as e: # E722
+                    log.log(f"Could not remove journal config: {e}", log.WARNING)
             else:
                 config_file = open(self.JOURNALD_CONFIG_FILE, 'w')
                 config_file.write("# SPDX-License-Identifier: GPL-2.0-or-later\n" +
@@ -758,7 +785,8 @@ class system(modules.Module):
                                   "# This file is generated automatically, don't modify.\n\n" +
                                   "[Journal]\n")
 
-                size = self.struct['journal']['settings']['journal_size']['value'].replace(' MiB', 'M')
+                size = self.struct['journal']['settings']['journal_size']['value'].replace(
+                    ' MiB', 'M')
                 config_file.write(f"SystemMaxUse={size}\n" +
                                   "MaxRetentionSec=0\n")
                 if self.struct['journal']['settings']['journal_rate_limit']['value'] == '1':
@@ -771,7 +799,8 @@ class system(modules.Module):
         oe.winOeMain.set_wizard_title(oe._(32003))
         oe.winOeMain.set_wizard_text(oe._(32304))
         oe.winOeMain.set_wizard_button_title(oe._(32308))
-        oe.winOeMain.set_wizard_button_1(self.struct['ident']['settings']['hostname']['value'], self, 'wizard_set_hostname')
+        oe.winOeMain.set_wizard_button_1(
+            self.struct['ident']['settings']['hostname']['value'], self, 'wizard_set_hostname')
 
     @log.log_function()
     def wizard_set_hostname(self):
@@ -791,4 +820,5 @@ class system(modules.Module):
         if xbmcKeyboard.isConfirmed():
             self.struct['ident']['settings']['hostname']['value'] = xbmcKeyboard.getText()
             self.set_hostname()
-            oe.winOeMain.getControl(1401).setLabel(self.struct['ident']['settings']['hostname']['value'])
+            oe.winOeMain.getControl(1401).setLabel(
+                self.struct['ident']['settings']['hostname']['value'])

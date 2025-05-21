@@ -91,7 +91,7 @@ class Agent(dbus_utils.Agent):
         arg_keys=['device'],
         result_keyword='reply'
     )
-    def RequestPasskey(self, device):
+    def RequestPasskey(self, device, reply):
         passkey = self.request_passkey(device)
         reply[0] = (dbussy.DBUS.Signature('u'), passkey)
 
@@ -107,6 +107,7 @@ class Agent(dbus_utils.Agent):
 
     def reject(self, message):
         raise dbussy.DBusError(ERROR_REJECTED, message)
+
 
 class Listener(object):
 
@@ -135,6 +136,7 @@ class Listener(object):
         changed = dbus_utils.convert_from_dbussy(changed)
         invalidated = dbus_utils.convert_from_dbussy(invalidated)
         self.on_properties_changed(interface, changed, invalidated, path)
+
 
 def get_managed_objects():
     return dbus_utils.call_method(BUS_NAME, '/', dbussy.DBUSX.INTERFACE_OBJECT_MANAGER, 'GetManagedObjects')

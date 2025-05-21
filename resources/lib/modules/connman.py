@@ -21,7 +21,7 @@ import ui_tools
 
 
 ####################################################################
-## Connection properties class
+# Connection properties class
 ####################################################################
 
 class connmanService(object):
@@ -266,15 +266,18 @@ class connmanService(object):
 
     @log.log_function()
     def __init__(self, servicePath, oeMain):
-        self.winOeCon = oeWindows.mainWindow('service-LibreELEC-Settings-mainWindow.xml', oe.__cwd__, 'Default', oeMain=oe, isChild=True)
+        self.winOeCon = oeWindows.mainWindow(
+            'service-LibreELEC-Settings-mainWindow.xml', oe.__cwd__, 'Default', oeMain=oe, isChild=True)
         self.servicePath = servicePath
         oe.dictModules['connmanNetworkConfig'] = self
-        self.service_properties = dbus_connman.service_get_properties(servicePath)
+        self.service_properties = dbus_connman.service_get_properties(
+            servicePath)
         for entry in sorted(self.datamap):
             for (key, value) in self.datamap[entry].items():
                 if self.struct[value]['type'] == 'Boolean':
                     if key in self.service_properties:
-                        self.struct[value]['settings'][value]['value'] = str(self.service_properties[key])
+                        self.struct[value]['settings'][value]['value'] = str(
+                            self.service_properties[key])
                 if self.struct[value]['type'] == 'Dictionary':
                     if key in self.service_properties:
                         for setting in self.struct[value]['settings']:
@@ -284,7 +287,8 @@ class connmanService(object):
                     if key in self.service_properties:
                         for setting in self.struct[value]['settings']:
                             if int(setting) < len(self.service_properties[key]):
-                                self.struct[value]['settings'][setting]['value'] = self.service_properties[key][int(setting)]
+                                self.struct[value]['settings'][setting]['value'] = self.service_properties[key][int(
+                                    setting)]
         self.winOeCon.show()
         for strEntry in sorted(self.struct, key=lambda x: self.struct[x]['order']):
             dictProperties = {
@@ -292,8 +296,9 @@ class connmanService(object):
                 'listTyp': oe.listObject['list'],
                 'menuLoader': 'menu_loader',
                 'category': strEntry,
-                }
-            self.winOeCon.addMenuItem(self.struct[strEntry]['name'], dictProperties)
+            }
+            self.winOeCon.addMenuItem(
+                self.struct[strEntry]['name'], dictProperties)
         self.winOeCon.doModal()
         del self.winOeCon
         del oe.dictModules['connmanNetworkConfig']
@@ -304,23 +309,30 @@ class connmanService(object):
 
     @log.log_function()
     def menu_loader(self, menuItem):
-        self.winOeCon.showButton(1, 32140, 'connmanNetworkConfig', 'save_network')
+        self.winOeCon.showButton(
+            1, 32140, 'connmanNetworkConfig', 'save_network')
         self.winOeCon.showButton(2, 32212, 'connmanNetworkConfig', 'cancel')
-        self.winOeCon.build_menu(self.struct, fltr=[menuItem.getProperty('category')])
+        self.winOeCon.build_menu(
+            self.struct, fltr=[menuItem.getProperty('category')])
 
     @log.log_function()
     def set_value_checkdhcp(self, listItem):
         if self.struct['IPv4']['settings']['Method']['value'] == 'dhcp':
             ok_window = xbmcgui.Dialog()
-            answer = ok_window.ok('Not allowed', 'IPv4 method is set to DHCP.\n\nChanging this option is not allowed')
+            ok_window.ok(
+                'Not allowed', 'IPv4 method is set to DHCP.\n\nChanging this option is not allowed')
             return
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['value'] = listItem.getProperty('value')
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['changed'] = True
+        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty(
+            'entry')]['value'] = listItem.getProperty('value')
+        self.struct[listItem.getProperty(
+            'category')]['settings'][listItem.getProperty('entry')]['changed'] = True
 
     @log.log_function()
     def set_value(self, listItem):
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['value'] = listItem.getProperty('value')
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['changed'] = True
+        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty(
+            'entry')]['value'] = listItem.getProperty('value')
+        self.struct[listItem.getProperty(
+            'category')]['settings'][listItem.getProperty('entry')]['changed'] = True
 
     @log.log_function()
     def save_network(self):
@@ -329,20 +341,20 @@ class connmanService(object):
                 return [root[key]['value'] for key in root.keys() if root[key]['value'] != '']
 
             def get_dict(root):
-                return {key:root[key]['value'] for key in root.keys() if root[key]['value'] != ''}
+                return {key: root[key]['value'] for key in root.keys() if root[key]['value'] != ''}
 
             dbus_connman.service_set_autoconnect(self.servicePath,
-                self.struct['AutoConnect']['settings']['AutoConnect']['value'])
+                                                 self.struct['AutoConnect']['settings']['AutoConnect']['value'])
             dbus_connman.service_set_domains_configuration(self.servicePath,
-                get_array(self.struct['Domains']['settings']))
+                                                           get_array(self.struct['Domains']['settings']))
             dbus_connman.service_set_ipv4_configuration(self.servicePath,
-                get_dict(self.struct['IPv4']['settings']))
+                                                        get_dict(self.struct['IPv4']['settings']))
             dbus_connman.service_set_ipv6_configuration(self.servicePath,
-                get_dict(self.struct['IPv6']['settings']))
+                                                        get_dict(self.struct['IPv6']['settings']))
             dbus_connman.service_set_nameservers_configuration(self.servicePath,
-                get_array(self.struct['Nameservers']['settings']))
+                                                               get_array(self.struct['Nameservers']['settings']))
             dbus_connman.service_set_timeservers_configuration(self.servicePath,
-                get_array(self.struct['Timeservers']['settings']))
+                                                               get_array(self.struct['Timeservers']['settings']))
         finally:
             return 'close'
 
@@ -369,7 +381,7 @@ class connmanService(object):
 
 
 ####################################################################
-## Connman main class
+# Connman main class
 ####################################################################
 
 class connman(modules.Module):
@@ -399,7 +411,6 @@ class connman(modules.Module):
     struct = {
         dbus_connman.PATH_TECH_WIFI: {
             'hidden': 'true',
-            'order': 1,
             'name': 32102,
             'settings': {
                 'Powered': {
@@ -432,7 +443,7 @@ class connman(modules.Module):
                         'entry': 'Tethering',
                         'value': ['1'],
                     },
-                    'validate': '^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$',
+                    'validate': r'^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$',
                     'InfoText': 728,
                 },
                 'TetheringPassphrase': {
@@ -466,7 +477,6 @@ class connman(modules.Module):
         },
         dbus_connman.PATH_TECH_ETHERNET: {
             'hidden': 'true',
-            'order': 2,
             'name': 32103,
             'settings': {'Powered': {
                 'order': 1,
@@ -479,7 +489,6 @@ class connman(modules.Module):
             'order': 1,
         },
         'Timeservers': {
-            'order': 4,
             'name': 32123,
             'settings': {
                 '0': {
@@ -488,7 +497,7 @@ class connman(modules.Module):
                     'value': '',
                     'action': 'set_timeservers',
                     'type': 'text',
-                    'validate': '^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$|^$',
+                    'validate': r'^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$|^$',
                     'InfoText': 732,
                 },
                 '1': {
@@ -497,7 +506,7 @@ class connman(modules.Module):
                     'value': '',
                     'action': 'set_timeservers',
                     'type': 'text',
-                    'validate': '^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$|^$',
+                    'validate': r'^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$|^$',
                     'InfoText': 733,
                 },
                 '2': {
@@ -506,14 +515,13 @@ class connman(modules.Module):
                     'value': '',
                     'action': 'set_timeservers',
                     'type': 'text',
-                    'validate': '^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$|^$',
+                    'validate': r'^([a-zA-Z0-9](?:[a-zA-Z0-9-\.]*[a-zA-Z0-9]))$|^$',
                     'InfoText': 734,
                 },
             },
             'order': 2,
         },
         'advanced': {
-            'order': 6,
             'name': 32368,
             'settings': {
                 'wait_for_network': {
@@ -587,11 +595,12 @@ class connman(modules.Module):
                         self.struct['advanced']['settings']['wait_for_network']['value'] = '0'
                 if 'WAIT_NETWORK_TIME=' in line:
                     self.struct['advanced']['settings']['wait_for_network_time']['value'] = line.split('=')[-1].lower().strip().replace('"',
-                            '')
+                                                                                                                                        '')
             wait_file.close()
         # IPTABLES
         nf_values = [oe._(32397), oe._(32398), oe._(32399)]
-        nf_custom_rules = [self.NF_CUSTOM_PATH + "rules.v4" , self.NF_CUSTOM_PATH + "rules.v6"]
+        nf_custom_rules = [self.NF_CUSTOM_PATH +
+                           "rules.v4", self.NF_CUSTOM_PATH + "rules.v6"]
         for custom_rule in nf_custom_rules:
             if os.path.exists(custom_rule):
                 nf_values.append(oe._(32396))
@@ -611,7 +620,8 @@ class connman(modules.Module):
         # regdom
         self.struct[dbus_connman.PATH_TECH_WIFI]['settings']['regdom']['values'] = regdomain.REGDOMAIN_LIST
         regValue = regdomain.get_regdomain()
-        self.struct[dbus_connman.PATH_TECH_WIFI]['settings']['regdom']['value'] = str(regValue)
+        self.struct[dbus_connman.PATH_TECH_WIFI]['settings']['regdom']['value'] = str(
+            regValue)
 
     @log.log_function()
     def menu_connections(self, focusItem, services={}, removed={}, force=False):
@@ -621,50 +631,49 @@ class connman(modules.Module):
                 'flag': 0,
                 'type': 2,
                 'values': ['State'],
-                },
+            },
             1: {
                 'flag': 0,
                 'type': 1,
                 'values': ['Strength'],
-                },
+            },
             2: {
                 'flag': 0,
                 'type': 1,
                 'values': ['Favorite'],
-                },
+            },
             3: {
                 'flag': 0,
                 'type': 3,
                 'values': ['Security'],
-                },
+            },
             4: {
                 'flag': 0,
                 'type': 2,
                 'values': ['IPv4', 'Method'],
-                },
+            },
             5: {
                 'flag': 0,
                 'type': 2,
                 'values': ['IPv4', 'Address'],
-                },
+            },
             6: {
                 'flag': 0,
                 'type': 2,
                 'values': ['IPv4.Configuration', 'Method'],
-                },
+            },
             7: {
                 'flag': 0,
                 'type': 2,
                 'values': ['IPv4.Configuration', 'Address'],
-                },
+            },
             8: {
                 'flag': 0,
                 'type': 2,
                 'values': ['Ethernet', 'Interface'],
-                },
-            }
+            },
+        }
         dbusServices = dbus_connman.manager_get_services()
-        dbusConnmanManager = None
         rebuildList = 0
         if len(dbusServices) != len(self.listItems) or force:
             rebuildList = 1
@@ -673,7 +682,8 @@ class connman(modules.Module):
             for (dbusServicePath, dbusServiceValues) in dbusServices:
                 if dbusServicePath not in self.listItems:
                     rebuildList = 1
-                    oe.winOeMain.getControl(int(oe.listObject['netlist'])).reset()
+                    oe.winOeMain.getControl(
+                        int(oe.listObject['netlist'])).reset()
                     break
         for (dbusServicePath, dbusServiceProperties) in dbusServices:
             dictProperties = {}
@@ -682,7 +692,8 @@ class connman(modules.Module):
                     apName = dbusServiceProperties['Name']
                 else:
                     if 'Security' in dbusServiceProperties:
-                        apName = oe._(32208) + ' (' + str(dbusServiceProperties['Security'][0]) + ')'
+                        apName = oe._(
+                            32208) + ' (' + str(dbusServiceProperties['Security'][0]) + ')'
                     else:
                         apName = ''
                 if apName != '':
@@ -705,7 +716,7 @@ class connman(modules.Module):
                     if properties[prop]['type'] == 2:
                         result = str(result)
                     if properties[prop]['type'] == 3:
-                        if any(x in result for x in ['psk','ieee8021x','wep']):
+                        if any(x in result for x in ['psk', 'ieee8021x', 'wep']):
                             result = str('1')
                         elif 'none' in result:
                             result = str('0')
@@ -714,15 +725,18 @@ class connman(modules.Module):
                     if rebuildList == 1:
                         dictProperties[value] = result
                     else:
-                        if self.listItems[dbusServicePath] != None:
-                            self.listItems[dbusServicePath].setProperty(value, result)
+                        if self.listItems[dbusServicePath] is not None:
+                            self.listItems[dbusServicePath].setProperty(
+                                value, result)
             if rebuildList == 1:
-                self.listItems[dbusServicePath] = oe.winOeMain.addConfigItem(apName, dictProperties, oe.listObject['netlist'])
+                self.listItems[dbusServicePath] = oe.winOeMain.addConfigItem(
+                    apName, dictProperties, oe.listObject['netlist'])
 
     @log.log_function()
     def menu_loader(self, menuItem=None):
-        if menuItem == None:
-            menuItem = oe.winOeMain.getControl(oe.winOeMain.guiMenList).getSelectedItem()
+        if menuItem is None:
+            menuItem = oe.winOeMain.getControl(
+                oe.winOeMain.guiMenList).getSelectedItem()
         self.technologie_properties = dbus_connman.manager_get_technologies()
         self.clock_properties = dbus_connman.clock_get_properties()
         self.struct[dbus_connman.PATH_TECH_WIFI]['hidden'] = 'true'
@@ -733,11 +747,13 @@ class connman(modules.Module):
                     del self.struct[path]['hidden']
                 for entry in self.struct[path]['settings']:
                     if entry in technologie:
-                        self.struct[path]['settings'][entry]['value'] = str(technologie[entry])
+                        self.struct[path]['settings'][entry]['value'] = str(
+                            technologie[entry])
         for setting in self.struct['Timeservers']['settings']:
             if 'Timeservers' in self.clock_properties:
                 if int(setting) < len(self.clock_properties['Timeservers']):
-                    self.struct['Timeservers']['settings'][setting]['value'] = self.clock_properties['Timeservers'][int(setting)]
+                    self.struct['Timeservers']['settings'][setting]['value'] = self.clock_properties['Timeservers'][int(
+                        setting)]
             else:
                 self.struct['Timeservers']['settings'][setting]['value'] = ''
         oe.winOeMain.build_menu(self.struct)
@@ -746,36 +762,37 @@ class connman(modules.Module):
     def open_context_menu(self, listItem):
         values = {}
         if listItem is None:
-            listItem = oe.winOeMain.getControl(oe.listObject['netlist']).getSelectedItem()
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['netlist']).getSelectedItem()
         if listItem is None:
             return
         if listItem.getProperty('State') in ['ready', 'online']:
             values[1] = {
                 'text': oe._(32143),
                 'action': 'disconnect_network',
-                }
+            }
         else:
             values[1] = {
                 'text': oe._(32144),
                 'action': 'connect_network',
-                }
+            }
         if listItem.getProperty('Favorite') == '1':
             values[2] = {
                 'text': oe._(32150),
                 'action': 'configure_network',
-                }
+            }
         if listItem.getProperty('Favorite') == '1' and listItem.getProperty('netType') == 'wifi':
             values[3] = {
                 'text': oe._(32141),
                 'action': 'delete_network',
-                }
+            }
         if hasattr(self, 'technologie_properties'):
             for (path, technologie) in self.technologie_properties:
                 if path == dbus_connman.PATH_TECH_WIFI:
                     values[4] = {
                         'text': oe._(32142),
                         'action': 'refresh_network',
-                        }
+                    }
                     break
         items = []
         actions = []
@@ -795,13 +812,16 @@ class connman(modules.Module):
         timeservers = []
         for setting in sorted(self.struct['Timeservers']['settings']):
             if self.struct['Timeservers']['settings'][setting]['value'] != '':
-                timeservers.append(self.struct['Timeservers']['settings'][setting]['value'])
+                timeservers.append(
+                    self.struct['Timeservers']['settings'][setting]['value'])
         dbus_connman.clock_set_timeservers(timeservers)
 
     @log.log_function()
     def set_value(self, listItem=None):
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['value'] = listItem.getProperty('value')
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['changed'] = True
+        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty(
+            'entry')]['value'] = listItem.getProperty('value')
+        self.struct[listItem.getProperty(
+            'category')]['settings'][listItem.getProperty('entry')]['changed'] = True
 
     @log.log_function()
     def set_technologie(self, **kwargs):
@@ -813,22 +833,27 @@ class connman(modules.Module):
                 for setting in self.struct[techPath]['settings']:
                     settings = self.struct[techPath]['settings']
                     if settings['Powered']['value'] == '1':
-                        if technologie['Powered'] != True:
+                        if not technologie['Powered']:
                             dbus_connman.technology_set_powered(techPath, True)
                         if (settings['Tethering']['value'] == '1' and
                             settings['TetheringIdentifier']['value'] != '' and
-                            settings['TetheringPassphrase']['value'] != ''):
+                                settings['TetheringPassphrase']['value'] != ''):
                             oe.xbmcm.waitForAbort(5)
-                            dbus_connman.technology_wifi_set_tethering_identifier(settings['TetheringIdentifier']['value'])
-                            dbus_connman.technology_wifi_set_tethering_passphrase(settings['TetheringPassphrase']['value'])
-                            if technologie['Tethering'] != True:
-                                dbus_connman.technology_wifi_set_tethering(True)
+                            dbus_connman.technology_wifi_set_tethering_identifier(
+                                settings['TetheringIdentifier']['value'])
+                            dbus_connman.technology_wifi_set_tethering_passphrase(
+                                settings['TetheringPassphrase']['value'])
+                            if not technologie['Tethering']:
+                                dbus_connman.technology_wifi_set_tethering(
+                                    True)
                         else:
-                            if technologie['Tethering'] != False:
-                                dbus_connman.technology_wifi_set_tethering(False)
+                            if technologie['Tethering']:
+                                dbus_connman.technology_wifi_set_tethering(
+                                    False)
                     else:
-                        if technologie['Powered'] != False:
-                            dbus_connman.technology_set_powered(techPath, False)
+                        if technologie['Powered']:
+                            dbus_connman.technology_set_powered(
+                                techPath, False)
                     break
         techPath = dbus_connman.PATH_TECH_ETHERNET
         for (path, technologie) in self.technologie_properties:
@@ -836,34 +861,38 @@ class connman(modules.Module):
                 for setting in self.struct[techPath]['settings']:
                     settings = self.struct[techPath]['settings']
                     if settings['Powered']['value'] == '1':
-                        if technologie['Powered'] != True:
+                        if not technologie['Powered']:
                             dbus_connman.technology_set_powered(techPath, True)
                     else:
-                        if technologie['Powered'] != False:
-                            dbus_connman.technology_set_powered(techPath, False)
+                        if technologie['Powered']:
+                            dbus_connman.technology_set_powered(
+                                techPath, False)
                     break
         self.menu_loader(None)
 
     @log.log_function()
     def custom_regdom(self, **kwargs):
-            if 'listItem' in kwargs:
-                regSelect = str((kwargs['listItem']).getProperty('value'))
-                regdomain.set_regdomain(regSelect)
-                self.set_value(kwargs['listItem'])
+        if 'listItem' in kwargs:
+            regSelect = str((kwargs['listItem']).getProperty('value'))
+            regdomain.set_regdomain(regSelect)
+            self.set_value(kwargs['listItem'])
 
     @log.log_function()
     def configure_network(self, listItem=None):
-        if listItem == None:
-            listItem = oe.winOeMain.getControl(oe.listObject['netlist']).getSelectedItem()
-        self.configureService = connmanService(listItem.getProperty('entry'), oe)
+        if listItem is None:
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['netlist']).getSelectedItem()
+        self.configureService = connmanService(
+            listItem.getProperty('entry'), oe)
         del self.configureService
         self.menu_connections(None)
 
     @log.log_function()
     def connect_network(self, listItem=None):
         self.connect_attempt += 1
-        if listItem == None:
-            listItem = oe.winOeMain.getControl(oe.listObject['netlist']).getSelectedItem()
+        if listItem is None:
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['netlist']).getSelectedItem()
         entry = listItem.getProperty('entry')
         try:
             dbus_connman.service_connect(entry)
@@ -911,7 +940,7 @@ class connman(modules.Module):
             else:
                 self.notify_error = 1
             if self.log_error == 1:
-                log.log(repr(error), log.ERROR)
+                log.log(f"DBusError name: {error.name}, message: {error.message}", log.ERROR)
             else:
                 self.log_error = 1
 
@@ -919,16 +948,18 @@ class connman(modules.Module):
     def disconnect_network(self, listItem=None):
         self.connect_attempt = 0
         self.net_disconnected = 1
-        if listItem == None:
-            listItem = oe.winOeMain.getControl(oe.listObject['netlist']).getSelectedItem()
+        if listItem is None:
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['netlist']).getSelectedItem()
         entry = listItem.getProperty('entry')
         dbus_connman.service_disconnect(entry)
 
     @log.log_function()
     def delete_network(self, listItem=None):
         self.connect_attempt = 0
-        if listItem == None:
-            listItem = oe.winOeMain.getControl(oe.listObject['netlist']).getSelectedItem()
+        if listItem is None:
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['netlist']).getSelectedItem()
         service_path = listItem.getProperty('entry')
         dbus_connman.service_remove(service_path)
 
@@ -965,7 +996,8 @@ class connman(modules.Module):
                 os.makedirs(os.path.dirname(self.WAIT_CONF_FILE))
             wait_conf = open(self.WAIT_CONF_FILE, 'w')
             wait_conf.write('WAIT_NETWORK="true"\n')
-            wait_conf.write(f"WAIT_NETWORK_TIME=\"{self.struct['advanced']['settings']['wait_for_network_time']['value']}\"\n")
+            wait_conf.write(
+                f"WAIT_NETWORK_TIME=\"{self.struct['advanced']['settings']['wait_for_network_time']['value']}\"\n")
             wait_conf.close()
 
     def init_netfilter(self, **kwargs):
@@ -992,13 +1024,13 @@ class connman(modules.Module):
         oe.winOeMain.getControl(1391).setLabel('show')
 
         oe.winOeMain.getControl(oe.winOeMain.buttons[2]['id'
-                                     ]).controlUp(oe.winOeMain.getControl(oe.winOeMain.guiNetList))
+                                                        ]).controlUp(oe.winOeMain.getControl(oe.winOeMain.guiNetList))
         oe.winOeMain.getControl(oe.winOeMain.buttons[2]['id'
-                                     ]).controlRight(oe.winOeMain.getControl(oe.winOeMain.buttons[1]['id']))
+                                                        ]).controlRight(oe.winOeMain.getControl(oe.winOeMain.buttons[1]['id']))
         oe.winOeMain.getControl(oe.winOeMain.buttons[1]['id'
-                                     ]).controlUp(oe.winOeMain.getControl(oe.winOeMain.guiNetList))
+                                                        ]).controlUp(oe.winOeMain.getControl(oe.winOeMain.guiNetList))
         oe.winOeMain.getControl(oe.winOeMain.buttons[1]['id'
-                                     ]).controlLeft(oe.winOeMain.getControl(oe.winOeMain.buttons[2]['id']))
+                                                        ]).controlLeft(oe.winOeMain.getControl(oe.winOeMain.buttons[2]['id']))
         self.menu_connections(None)
 
 
@@ -1041,7 +1073,6 @@ class Listener(dbus_connman.Listener):
     def __init__(self, parent):
         self.parent = parent
         super().__init__()
-
 
     @log.log_function()
     async def on_property_changed(self, name, value, path):
@@ -1092,6 +1123,6 @@ class Listener(dbus_connman.Listener):
 
     @log.log_function()
     def forceRender(self):
-            focusId = oe.winOeMain.getFocusId()
-            oe.winOeMain.setFocusId(oe.listObject['netlist'])
-            oe.winOeMain.setFocusId(focusId)
+        focusId = oe.winOeMain.getFocusId()
+        oe.winOeMain.setFocusId(oe.listObject['netlist'])
+        oe.winOeMain.setFocusId(focusId)

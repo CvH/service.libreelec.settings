@@ -24,6 +24,7 @@ lang_new = ""
 strModule = ""
 prevModule = ""
 
+
 class mainWindow(xbmcgui.WindowXMLDialog):
 
     def __init__(self, *args, **kwargs):
@@ -40,19 +41,19 @@ class mainWindow(xbmcgui.WindowXMLDialog):
             1100,
             1200,
             1300,
-            ]
+        ]
         self.buttons = {
             1: {
                 'id': 1500,
                 'modul': '',
                 'action': '',
-                },
+            },
             2: {
                 'id': 1501,
                 'modul': '',
                 'action': '',
-                },
-            }
+            },
+        }
 
         self.isChild = False
         self.lastGuiList = -1
@@ -85,10 +86,12 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                             'modul': strModule,
                             'listTyp': oe.listObject[module.menu[men]['listTyp']],
                             'menuLoader': module.menu[men]['menuLoader'],
-                            }
+                        }
                         if 'InfoText' in module.menu[men]:
-                            dictProperties['InfoText'] = oe._(module.menu[men]['InfoText'])
-                        self.addMenuItem(module.menu[men]['name'], dictProperties)
+                            dictProperties['InfoText'] = oe._(
+                                module.menu[men]['InfoText'])
+                        self.addMenuItem(
+                            module.menu[men]['name'], dictProperties)
         self.setFocusId(self.guiMenList)
         self.onFocus(self.guiMenList)
 
@@ -112,8 +115,8 @@ class mainWindow(xbmcgui.WindowXMLDialog):
         self.getControl(1100).reset()
         m_menu = []
         for category in sorted(struct, key=lambda x: struct[x]['order']):
-            if not 'hidden' in struct[category]:
-                if fltr == []:
+            if 'hidden' not in struct[category]:
+                if not fltr: # Simplified [] to not fltr
                     m_entry = {}
                     m_entry['name'] = oe._(struct[category]['name'])
                     m_entry['properties'] = {'typ': 'separator'}
@@ -124,40 +127,43 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                         continue
                 for entry in sorted(struct[category]['settings'], key=lambda x: struct[category]['settings'][x]['order']):
                     setting = struct[category]['settings'][entry]
-                    if not 'hidden' in setting:
+                    if 'hidden' not in setting:
                         dictProperties = {
                             'value': setting['value'],
                             'typ': setting['type'],
                             'entry': entry,
                             'category': category,
                             'action': setting['action'],
-                            }
+                        }
                         if 'InfoText' in setting:
-                            dictProperties['InfoText'] = oe._(setting['InfoText'])
+                            dictProperties['InfoText'] = oe._(
+                                setting['InfoText'])
                         if 'validate' in setting:
                             dictProperties['validate'] = setting['validate']
                         if 'values' in setting and setting['values'] is not None:
-                            dictProperties['values'] = '|'.join(setting['values'])
+                            dictProperties['values'] = '|'.join(
+                                setting['values'])
                         if isinstance(setting['name'], str):
                             name = setting['name']
                         else:
                             name = oe._(setting['name'])
                             dictProperties['menuname'] = oe._(setting['name'])
                         m_entry = {}
-                        if not 'parent' in setting:
+                        if 'parent' not in setting:
                             m_entry['name'] = name
                             m_entry['properties'] = dictProperties
                             m_entry['list'] = 1100
                             m_menu.append(m_entry)
                         else:
                             if struct[category]['settings'][setting['parent']['entry']]['value'] in setting['parent']['value']:
-                                if not 'optional' in setting or 'optional' in setting and optional != '0':
+                                if 'optional' not in setting or ('optional' in setting and optional != '0'):
                                     m_entry['name'] = name
                                     m_entry['properties'] = dictProperties
                                     m_entry['list'] = 1100
                                     m_menu.append(m_entry)
         for m_entry in m_menu:
-            self.addConfigItem(m_entry['name'], m_entry['properties'], m_entry['list'])
+            self.addConfigItem(
+                m_entry['name'], m_entry['properties'], m_entry['list'])
 
     @log.log_function()
     def showButton(self, number, name, module, action, onup=None, onleft=None):
@@ -166,9 +172,9 @@ class mainWindow(xbmcgui.WindowXMLDialog):
         self.buttons[number]['modul'] = module
         self.buttons[number]['action'] = action
         button.setLabel(oe._(name))
-        if onup != None:
+        if onup is not None:
             button.controlUp(self.getControl(onup))
-        if onleft != None:
+        if onleft is not None:
             button.controlLeft(self.getControl(onleft))
         button.setVisible(True)
         log.log('exit_function', log.DEBUG)
@@ -193,7 +199,7 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                     2,
                     3,
                     4,
-                    ]:
+                ]:
                     while nextItem.getProperty('typ') == 'separator':
                         if actionId == 2:
                             newPos = newPos + 1
@@ -208,7 +214,8 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                         nextItem = self.getControl(focusId).getListItem(newPos)
                     self.lastGuiList = newPos
                     self.getControl(focusId).selectItem(newPos)
-                    self.setProperty('InfoText', nextItem.getProperty('InfoText'))
+                    self.setProperty(
+                        'InfoText', nextItem.getProperty('InfoText'))
             if focusId == self.guiMenList:
                 self.setFocusId(focusId)
         except Exception:
@@ -228,7 +235,8 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                     return
         if controlID in self.guiLists:
             selectedPosition = self.getControl(controlID).getSelectedPosition()
-            selectedMenuItem = self.getControl(self.guiMenList).getSelectedItem()
+            selectedMenuItem = self.getControl(
+                self.guiMenList).getSelectedItem()
             selectedItem = self.getControl(controlID).getSelectedItem()
             strTyp = selectedItem.getProperty('typ')
             strValue = selectedItem.getProperty('value')
@@ -276,12 +284,14 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                     selectedItem.setProperty('value', xbmcKeyboard.getText())
             elif strTyp == 'file':
                 xbmcDialog = xbmcgui.Dialog()
-                returnValue = xbmcDialog.browse(1, 'LibreELEC.tv', 'files', '', False, False, '/')
+                returnValue = xbmcDialog.browse(
+                    1, 'LibreELEC.tv', 'files', '', False, False, '/')
                 if returnValue != '' and returnValue != '/':
                     selectedItem.setProperty('value', str(returnValue))
             elif strTyp == 'folder':
                 xbmcDialog = xbmcgui.Dialog()
-                returnValue = xbmcDialog.browse(0, 'LibreELEC.tv', 'files', '', False, False, '/storage')
+                returnValue = xbmcDialog.browse(
+                    0, 'LibreELEC.tv', 'files', '', False, False, '/storage')
                 if returnValue != '' and returnValue != '/':
                     selectedItem.setProperty('value', str(returnValue))
             elif strTyp == 'ip':
@@ -316,7 +326,7 @@ class mainWindow(xbmcgui.WindowXMLDialog):
             if selectedItem.getProperty('action') != '':
                 if hasattr(oe.dictModules[selectedMenuItem.getProperty('modul')], selectedItem.getProperty('action')):
                     getattr(oe.dictModules[selectedMenuItem.getProperty('modul')], selectedItem.getProperty('action'
-                            ))(listItem=selectedItem)
+                                                                                                            ))(listItem=selectedItem)
                     self.emptyButtonLabels()
             self.lastMenu = -1
             self.onFocus(self.guiMenList)
@@ -333,7 +343,8 @@ class mainWindow(xbmcgui.WindowXMLDialog):
             currentEntry = self.getControl(controlID).getSelectedPosition()
             selectedEntry = self.getControl(controlID).getSelectedItem()
             if controlID == self.guiList:
-                self.setProperty('InfoText', selectedEntry.getProperty('InfoText'))
+                self.setProperty(
+                    'InfoText', selectedEntry.getProperty('InfoText'))
             if currentEntry != self.lastGuiList:
                 self.lastGuiList = currentEntry
                 if selectedEntry is not None:
@@ -341,31 +352,39 @@ class mainWindow(xbmcgui.WindowXMLDialog):
                     if strHoover != '':
                         if hasattr(oe.dictModules[selectedEntry.getProperty('modul')], strHoover):
                             self.emptyButtonLabels()
-                            getattr(oe.dictModules[selectedEntry.getProperty('modul')], strHoover)(selectedEntry)
+                            getattr(oe.dictModules[selectedEntry.getProperty(
+                                'modul')], strHoover)(selectedEntry)
         if controlID == self.guiMenList:
             lastMenu = self.getControl(controlID).getSelectedPosition()
             selectedMenuItem = self.getControl(controlID).getSelectedItem()
-            self.setProperty('InfoText', selectedMenuItem.getProperty('InfoText'))
+            self.setProperty(
+                'InfoText', selectedMenuItem.getProperty('InfoText'))
             if lastMenu != self.lastMenu:
                 if self.lastListType == int(selectedMenuItem.getProperty('listTyp')):
                     self.getControl(int(selectedMenuItem.getProperty('listTyp'))).setAnimations([('conditional',
-                            'effect=fade start=100 end=0 time=100 condition=True')])
-                self.getControl(1100).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
-                self.getControl(1200).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
-                self.getControl(1300).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
-                self.getControl(1900).setAnimations([('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                                                                                                  'effect=fade start=100 end=0 time=100 condition=True')])
+                self.getControl(1100).setAnimations(
+                    [('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                self.getControl(1200).setAnimations(
+                    [('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                self.getControl(1300).setAnimations(
+                    [('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
+                self.getControl(1900).setAnimations(
+                    [('conditional', 'effect=fade start=0 end=0 time=1 condition=True')])
                 self.lastModul = selectedMenuItem.getProperty('Modul')
                 self.lastMenu = lastMenu
                 for btn in self.buttons:
                     self.getControl(self.buttons[btn]['id']).setVisible(False)
                 strMenuLoader = selectedMenuItem.getProperty('menuLoader')
-                objList = self.getControl(int(selectedMenuItem.getProperty('listTyp')))
+                objList = self.getControl(
+                    int(selectedMenuItem.getProperty('listTyp')))
                 self.getControl(controlID).controlRight(objList)
                 if strMenuLoader != '':
                     if hasattr(oe.dictModules[selectedMenuItem.getProperty('modul')], strMenuLoader):
-                        getattr(oe.dictModules[selectedMenuItem.getProperty('modul')], strMenuLoader)(selectedMenuItem)
+                        getattr(oe.dictModules[selectedMenuItem.getProperty(
+                            'modul')], strMenuLoader)(selectedMenuItem)
                 self.getControl(int(selectedMenuItem.getProperty('listTyp'))).setAnimations([('conditional',
-                        'effect=fade start=0 end=100 time=100 condition=true')])
+                                                                                              'effect=fade start=0 end=100 time=100 condition=true')])
 
     def emptyButtonLabels(self):
         for btn in self.buttons:
@@ -414,36 +433,36 @@ class wizard(xbmcgui.WindowXMLDialog):
                 'id': 1500,
                 'modul': '',
                 'action': '',
-                },
+            },
             2: {
                 'id': 1501,
                 'modul': '',
                 'action': '',
-                },
+            },
             3: {
                 'id': 1401,
                 'modul': '',
                 'action': '',
-                },
+            },
             4: {
                 'id': 1402,
                 'modul': '',
                 'action': '',
-                },
-            }
+            },
+        }
 
         self.radiobuttons = {
             1: {
                 'id': 1406,
                 'modul': '',
                 'action': '',
-                },
+            },
             2: {
                 'id': 1407,
                 'modul': '',
                 'action': '',
-                },
-            }
+            },
+        }
 
         self.actions = {}
         self.wizards = []
@@ -471,7 +490,8 @@ class wizard(xbmcgui.WindowXMLDialog):
             self.set_wizard_text(oe._(32302))
             oe.winOeMain.set_wizard_button_title(oe._(32310))
             cur_lang = xbmc.getLanguage()
-            oe.winOeMain.set_wizard_button_1(cur_lang, self, 'wizard_set_language')
+            oe.winOeMain.set_wizard_button_1(
+                cur_lang, self, 'wizard_set_language')
         self.showButton(1, 32303)
         self.setFocusId(self.buttons[1]['id'])
 
@@ -479,7 +499,8 @@ class wizard(xbmcgui.WindowXMLDialog):
     def wizard_set_language(self):
         global lang_new
         log.log('enter_function', log.DEBUG)
-        langCodes = {"Bulgarian":"resource.language.bg_bg","Czech":"resource.language.cs_cz","German":"resource.language.de_de","English":"resource.language.en_gb","Spanish":"resource.language.es_es","Basque":"resource.language.eu_es","Finnish":"resource.language.fi_fi","French":"resource.language.fr_fr","Hebrew":"resource.language.he_il","Hungarian":"resource.language.hu_hu","Italian":"resource.language.it_it","Lithuanian":"resource.language.lt_lt","Latvian":"resource.language.lv_lv","Norwegian":"resource.language.nb_no","Dutch":"resource.language.nl_nl","Polish":"resource.language.pl_pl","Portuguese (Brazil)":"resource.language.pt_br","Portuguese":"resource.language.pt_pt","Romanian":"resource.language.ro_ro","Russian":"resource.language.ru_ru","Slovak":"resource.language.sk_sk","Swedish":"resource.language.sv_se","Turkish":"resource.language.tr_tr","Ukrainian":"resource.language.uk_ua"}
+        langCodes = {"Bulgarian": "resource.language.bg_bg", "Czech": "resource.language.cs_cz", "German": "resource.language.de_de", "English": "resource.language.en_gb", "Spanish": "resource.language.es_es", "Basque": "resource.language.eu_es", "Finnish": "resource.language.fi_fi", "French": "resource.language.fr_fr", "Hebrew": "resource.language.he_il", "Hungarian": "resource.language.hu_hu", "Italian": "resource.language.it_it", "Lithuanian": "resource.language.lt_lt",
+                     "Latvian": "resource.language.lv_lv", "Norwegian": "resource.language.nb_no", "Dutch": "resource.language.nl_nl", "Polish": "resource.language.pl_pl", "Portuguese (Brazil)": "resource.language.pt_br", "Portuguese": "resource.language.pt_pt", "Romanian": "resource.language.ro_ro", "Russian": "resource.language.ru_ru", "Slovak": "resource.language.sk_sk", "Swedish": "resource.language.sv_se", "Turkish": "resource.language.tr_tr", "Ukrainian": "resource.language.uk_ua"}
         languagesList = sorted(list(langCodes.keys()))
         cur_lang = xbmc.getLanguage()
         for index, lang in enumerate(languagesList):
@@ -488,7 +509,8 @@ class wizard(xbmcgui.WindowXMLDialog):
                 break
             else:
                 pass
-        selLanguage = xbmcDialog.select(oe._(32310), languagesList, preselect=langIndex)
+        selLanguage = xbmcDialog.select(
+            oe._(32310), languagesList, preselect=langIndex)
         if selLanguage >= 0:
             langKey = languagesList[selLanguage]
             lang_new = langCodes[langKey]
@@ -500,7 +522,8 @@ class wizard(xbmcgui.WindowXMLDialog):
             self.set_wizard_title(oe._(32301))
             self.set_wizard_text(oe._(32302))
             oe.winOeMain.set_wizard_button_title(oe._(32310))
-            oe.winOeMain.set_wizard_button_1(langKey, self, 'wizard_set_language')
+            oe.winOeMain.set_wizard_button_1(
+                langKey, self, 'wizard_set_language')
             self.showButton(1, 32303)
             self.setFocusId(self.buttons[1]['id'])
         log.log('exit_function', log.DEBUG)
@@ -527,15 +550,22 @@ class wizard(xbmcgui.WindowXMLDialog):
         self.buttons[3]['action'] = action
         self.getControl(self.buttons[3]['id']).setLabel(label)
         self.getControl(self.buttons[3]['id']).setVisible(True)
-        self.getControl(self.buttons[3]['id']).controlRight(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.buttons[3]['id']).controlDown(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.buttons[1]['id']).controlUp(self.getControl(self.buttons[3]['id']))
+        self.getControl(self.buttons[3]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.buttons[3]['id']).controlDown(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.buttons[1]['id']).controlUp(
+            self.getControl(self.buttons[3]['id']))
         if self.buttons[2]['id']:
-            self.getControl(self.buttons[1]['id']).controlLeft(self.getControl(self.buttons[2]['id']))
+            self.getControl(self.buttons[1]['id']).controlLeft(
+                self.getControl(self.buttons[2]['id']))
         else:
-            self.getControl(self.buttons[1]['id']).controlLeft(self.getControl(self.buttons[3]['id']))
-        self.getControl(self.buttons[2]['id']).controlUp(self.getControl(self.buttons[3]['id']))
-        self.getControl(self.buttons[2]['id']).controlRight(self.getControl(self.buttons[1]['id']))
+            self.getControl(self.buttons[1]['id']).controlLeft(
+                self.getControl(self.buttons[3]['id']))
+        self.getControl(self.buttons[2]['id']).controlUp(
+            self.getControl(self.buttons[3]['id']))
+        self.getControl(self.buttons[2]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
 
     @log.log_function()
     def set_wizard_button_2(self, label, modul, action):
@@ -543,14 +573,22 @@ class wizard(xbmcgui.WindowXMLDialog):
         self.buttons[4]['action'] = action
         self.getControl(self.buttons[4]['id']).setLabel(label)
         self.getControl(self.buttons[4]['id']).setVisible(True)
-        self.getControl(self.buttons[4]['id']).controlLeft(self.getControl(self.buttons[3]['id']))
-        self.getControl(self.buttons[4]['id']).controlDown(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.buttons[4]['id']).controlRight(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.buttons[1]['id']).controlUp(self.getControl(self.buttons[4]['id']))
-        self.getControl(self.buttons[1]['id']).controlLeft(self.getControl(self.buttons[4]['id']))
-        self.getControl(self.buttons[2]['id']).controlUp(self.getControl(self.buttons[4]['id']))
-        self.getControl(self.buttons[2]['id']).controlRight(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.buttons[3]['id']).controlRight(self.getControl(self.buttons[4]['id']))
+        self.getControl(self.buttons[4]['id']).controlLeft(
+            self.getControl(self.buttons[3]['id']))
+        self.getControl(self.buttons[4]['id']).controlDown(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.buttons[4]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.buttons[1]['id']).controlUp(
+            self.getControl(self.buttons[4]['id']))
+        self.getControl(self.buttons[1]['id']).controlLeft(
+            self.getControl(self.buttons[4]['id']))
+        self.getControl(self.buttons[2]['id']).controlUp(
+            self.getControl(self.buttons[4]['id']))
+        self.getControl(self.buttons[2]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.buttons[3]['id']).controlRight(
+            self.getControl(self.buttons[4]['id']))
 
     @log.log_function()
     def set_wizard_radiobutton_1(self, label, modul, action, selected=False):
@@ -558,12 +596,18 @@ class wizard(xbmcgui.WindowXMLDialog):
         self.radiobuttons[1]['action'] = action
         self.getControl(self.radiobuttons[1]['id']).setLabel(label)
         self.getControl(self.radiobuttons[1]['id']).setVisible(True)
-        self.getControl(self.radiobuttons[1]['id']).controlRight(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.radiobuttons[1]['id']).controlDown(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.buttons[1]['id']).controlUp(self.getControl(self.buttons[3]['id']))
-        self.getControl(self.buttons[1]['id']).controlLeft(self.getControl(self.buttons[2]['id']))
-        self.getControl(self.buttons[2]['id']).controlUp(self.getControl(self.radiobuttons[1]['id']))
-        self.getControl(self.buttons[2]['id']).controlRight(self.getControl(self.buttons[1]['id']))
+        self.getControl(self.radiobuttons[1]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.radiobuttons[1]['id']).controlDown(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.buttons[1]['id']).controlUp(
+            self.getControl(self.buttons[3]['id']))
+        self.getControl(self.buttons[1]['id']).controlLeft(
+            self.getControl(self.buttons[2]['id']))
+        self.getControl(self.buttons[2]['id']).controlUp(
+            self.getControl(self.radiobuttons[1]['id']))
+        self.getControl(self.buttons[2]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
         self.getControl(self.radiobuttons[1]['id']).setSelected(selected)
 
     @log.log_function()
@@ -572,14 +616,22 @@ class wizard(xbmcgui.WindowXMLDialog):
         self.radiobuttons[2]['action'] = action
         self.getControl(self.radiobuttons[2]['id']).setLabel(label)
         self.getControl(self.radiobuttons[2]['id']).setVisible(True)
-        self.getControl(self.radiobuttons[2]['id']).controlLeft(self.getControl(self.radiobuttons[1]['id']))
-        self.getControl(self.radiobuttons[2]['id']).controlDown(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.radiobuttons[2]['id']).controlRight(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.buttons[1]['id']).controlUp(self.getControl(self.radiobuttons[2]['id']))
-        self.getControl(self.buttons[1]['id']).controlLeft(self.getControl(self.buttons[2]['id']))
-        self.getControl(self.buttons[2]['id']).controlUp(self.getControl(self.radiobuttons[1]['id']))
-        self.getControl(self.buttons[2]['id']).controlRight(self.getControl(self.buttons[1]['id']))
-        self.getControl(self.radiobuttons[1]['id']).controlRight(self.getControl(self.radiobuttons[2]['id']))
+        self.getControl(self.radiobuttons[2]['id']).controlLeft(
+            self.getControl(self.radiobuttons[1]['id']))
+        self.getControl(self.radiobuttons[2]['id']).controlDown(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.radiobuttons[2]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.buttons[1]['id']).controlUp(
+            self.getControl(self.radiobuttons[2]['id']))
+        self.getControl(self.buttons[1]['id']).controlLeft(
+            self.getControl(self.buttons[2]['id']))
+        self.getControl(self.buttons[2]['id']).controlUp(
+            self.getControl(self.radiobuttons[1]['id']))
+        self.getControl(self.buttons[2]['id']).controlRight(
+            self.getControl(self.buttons[1]['id']))
+        self.getControl(self.radiobuttons[1]['id']).controlRight(
+            self.getControl(self.radiobuttons[2]['id']))
         self.getControl(self.radiobuttons[2]['id']).setSelected(selected)
 
     def onAction(self, action):
@@ -593,16 +645,19 @@ class wizard(xbmcgui.WindowXMLDialog):
         for btn in self.buttons:
             if controlID == self.buttons[btn]['id'] and self.buttons[btn]['id'] > 2:
                 if hasattr(self.buttons[btn]['modul'], self.buttons[btn]['action']):
-                    getattr(self.buttons[btn]['modul'], self.buttons[btn]['action'])()
+                    getattr(self.buttons[btn]['modul'],
+                            self.buttons[btn]['action'])()
         for btn in self.radiobuttons:
             if controlID == self.radiobuttons[btn]['id'] and self.radiobuttons[btn]['id'] > 1:
                 if hasattr(self.radiobuttons[btn]['modul'], self.radiobuttons[btn]['action']):
-                    getattr(self.radiobuttons[btn]['modul'], self.radiobuttons[btn]['action'])()
+                    getattr(self.radiobuttons[btn]['modul'],
+                            self.radiobuttons[btn]['action'])()
         if controlID == self.guiNetList:
             selectedItem = self.getControl(controlID).getSelectedItem()
             if selectedItem.getProperty('action') != '':
                 if hasattr(oe.dictModules[self.last_wizard], selectedItem.getProperty('action')):
-                    getattr(oe.dictModules[self.last_wizard], selectedItem.getProperty('action'))(selectedItem)
+                    getattr(oe.dictModules[self.last_wizard], selectedItem.getProperty(
+                        'action'))(selectedItem)
                     return
         if controlID == 1501:
             self.wizards.remove(strModule)
@@ -641,10 +696,10 @@ class wizard(xbmcgui.WindowXMLDialog):
                             oe.dictModules[strModule].exit()
                             if hasattr(oe.dictModules[strModule], 'is_wizard'):
                                 del oe.dictModules[strModule].is_wizard
-                    setting = oe.read_setting(strModule, 'wizard_completed')
-                    if self.wizards != []:
+                    # setting = oe.read_setting(strModule, 'wizard_completed') # Unused variable
+                    if self.wizards: # Simplified != []
                         prevModule = self.wizards[-1]
-                    if oe.read_setting(strModule, 'wizard_completed') == None and strModule not in self.wizards:
+                    if oe.read_setting(strModule, 'wizard_completed') is None and strModule not in self.wizards:
                         self.last_wizard = strModule
                         if hasattr(oe.dictModules[strModule], 'do_init'):
                             oe.dictModules[strModule].do_init()
@@ -654,8 +709,8 @@ class wizard(xbmcgui.WindowXMLDialog):
                         oe.write_setting(strModule, 'wizard_completed', 'True')
                         self.is_last_wizard = False
                         break
-            if self.is_last_wizard == True:
-                if lang_new and xbmc.getCondVisibility(f'System.HasAddon({lang_new})') == False:
+            if self.is_last_wizard:
+                if lang_new and not xbmc.getCondVisibility(f'System.HasAddon({lang_new})'):
                     xbmc.executebuiltin(f'InstallAddon({lang_new})')
                 oe.xbmcm.waitForAbort(0.5)
                 xbmc.executebuiltin('SendClick(10100,11)')
@@ -667,10 +722,11 @@ class wizard(xbmcgui.WindowXMLDialog):
                         if xbmc.getCondVisibility(f'System.HasAddon({lang_new})'):
                             break
                         oe.xbmcm.waitForAbort(0.5)
-                    if xbmc.getCondVisibility(f'System.HasAddon({lang_new})') == True:
+                    if xbmc.getCondVisibility(f'System.HasAddon({lang_new})'):
                         xbmc.executebuiltin(f'SetGUILanguage({str(lang_new)})')
                     else:
-                        log.log(f'{str(controlID)}: ERROR: Unable to switch language to: {lang_new}. Language addon is not installed.', log.INFO)
+                        log.log(
+                            f'{str(controlID)}: ERROR: Unable to switch language to: {lang_new}. Language addon is not installed.', log.INFO)
         log.log(f'{str(controlID)}: exit_function', log.DEBUG)
 
     def onFocus(self, controlID):

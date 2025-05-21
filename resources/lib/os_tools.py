@@ -14,7 +14,7 @@ import subprocess
 import log
 
 
-### FILE ACCESS ###
+# FILE ACCESS
 def read_shell_setting(file, default=None):
     '''Read the first line of a file as the setting'''
     setting = default if default else ''
@@ -48,17 +48,19 @@ def read_shell_settings(file, defaults=None):
     return settings
 
 
-### SYSTEM ACCESS ###
+# SYSTEM ACCESS
 def execute(command, get_result=False, output_err_msg=True):
     '''Run command, waiting for it to finish. Returns: command output, empty string or None'''
     log.log(f'Executing command: {command}', log.DEBUG)
     try:
-        cmd_status = subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        cmd_status = subprocess.run(
+            command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     except subprocess.CalledProcessError as e:
         if output_err_msg:
             log.log(f'Command failed: {command}', log.ERROR)
             log.log(f'Executed command: {e.cmd}', log.DEBUG)
-            log.log(f'\nSTART COMMAND OUTPUT:\n{e.stdout.decode()}\nEND COMMAND OUTPUT', log.ERROR)
+            log.log(
+                f'\nSTART COMMAND OUTPUT:\n{e.stdout.decode()}\nEND COMMAND OUTPUT', log.ERROR)
         # return empty string if result wanted to match old behaviour
         return '' if get_result else None
     # return output if requested, otherwise return None

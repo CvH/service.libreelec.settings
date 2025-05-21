@@ -64,7 +64,7 @@ class Bool(int):
         return int.__new__(cls, bool(value))
 
     def __str__(self):
-        return '1' if self == True else '0'
+        return '1' if self else '0'
 
 
 class LoopThread(threading.Thread):

@@ -3,11 +3,12 @@
 # Copyright (C) 2013 Lutz Fiebach (lufie@openelec.tv)
 # Copyright (C) 2019-present Team LibreELEC (https://libreelec.tv)
 
-################################# variables ##################################
+# variables
 
+import oeWindows
 import binascii
 import hashlib
-import importlib
+# import importlib # F401: Unused
 import locale
 import os
 import re
@@ -47,7 +48,7 @@ listObject = {
     'btlist': 1300,
     'other': 1900,
     'test': 900,
-    }
+}
 CANCEL = (
     9,
     10,
@@ -58,23 +59,24 @@ CANCEL = (
     61467,
     92,
     61448,
-    )
+)
 
-###############################################################################
-########################## initialize module ##################################
-## set default encoding
+# initialize module
+# set default encoding
 
 try:
     encoding = locale.getpreferredencoding(do_setlocale=True)
-    importlib.reload(sys)
+    # importlib.reload(sys) # Not needed in Python 3 for encoding purposes
     # sys.setdefaultencoding(encoding)
 except Exception as e:
-    log.log(f'## LibreELEC Addon ## oe:encoding: ERROR: ({repr(e)})', log.ERROR)
+    log.log(
+        f'## LibreELEC Addon ## oe:encoding: ERROR: ({repr(e)})', log.ERROR)
 
-## load oeSettings modules
+# load oeSettings modules
 
-import oeWindows
-log.log(f"## LibreELEC Addon ## {str(__addon__.getAddonInfo('version'))}", log.INFO)
+log.log(
+    f"## LibreELEC Addon ## {str(__addon__.getAddonInfo('version'))}", log.INFO)
+
 
 class PINStorage:
     def __init__(self, module='system', prefix='pinlock', maxAttempts=4, delay=300):
@@ -90,10 +92,14 @@ class PINStorage:
         self.numFail = self.read('numFail')
         self.timeFail = self.read('timeFail')
 
-        self.enabled = '0' if (self.enabled is None or self.enabled != '1') else '1'
-        self.salthash = None if (self.salthash is None or self.salthash == '') else self.salthash
-        self.numFail = 0 if (self.numFail is None or int(self.numFail) < 0) else int(self.numFail)
-        self.timeFail = 0.0 if (self.timeFail is None or float(self.timeFail) <= 0.0) else float(self.timeFail)
+        self.enabled = '0' if (
+            self.enabled is None or self.enabled != '1') else '1'
+        self.salthash = None if (
+            self.salthash is None or self.salthash == '') else self.salthash
+        self.numFail = 0 if (self.numFail is None or int(
+            self.numFail) < 0) else int(self.numFail)
+        self.timeFail = 0.0 if (self.timeFail is None or float(
+            self.timeFail) <= 0.0) else float(self.timeFail)
 
         # Remove impossible configurations - if enabled we must have a valid hash, and vice versa.
         if self.isEnabled() != self.isSet():
@@ -128,7 +134,8 @@ class PINStorage:
 
         if value:
             salt = hashlib.sha256(os.urandom(60)).hexdigest().encode('ascii')
-            newhash = hashlib.pbkdf2_hmac('sha512', value.encode('utf-8'), salt, 100000)
+            newhash = hashlib.pbkdf2_hmac(
+                'sha512', value.encode('utf-8'), salt, 100000)
             newhash = binascii.hexlify(newhash)
             self.salthash = (salt + newhash).decode('ascii')
         else:
@@ -140,7 +147,8 @@ class PINStorage:
     def verify(self, value):
         salt = self.salthash[:64].encode('ascii')
         oldhash = self.salthash[64:]
-        newhash = hashlib.pbkdf2_hmac('sha512', value.encode('utf-8'), salt, 100000)
+        newhash = hashlib.pbkdf2_hmac(
+            'sha512', value.encode('utf-8'), salt, 100000)
         newhash = binascii.hexlify(newhash).decode('ascii')
         return oldhash == newhash
 
@@ -175,6 +183,7 @@ class PINStorage:
 
     def attemptsRemaining(self):
         return (self.maxAttempts - self.numFail)
+
 
 class ProgressDialog:
     def __init__(self, label1=32181, label2=32182, label3=32183, minSampleInterval=1.0, maxUpdatesPerSecond=5):
@@ -238,7 +247,8 @@ class ProgressDialog:
             self.start = now
 
         if (now - self.start) >= self.minSampleInterval or not chunk:
-            self.speed = max(int((self.partial_size - self.prev_size) / (now - self.start) / 1024), 1)
+            self.speed = max(
+                int((self.partial_size - self.prev_size) / (now - self.start) / 1024), 1)
             remain = self.total_size - self.partial_size
             self.minutes = int(remain / 1024 / self.speed / 60)
             self.seconds = int(remain / 1024 / self.speed) % 60
@@ -265,7 +275,8 @@ def _(code):
     else:
         curLang = read_setting("system", "language")
         if curLang is not None:
-            lang_file = os.path.join(__cwd__, 'resources', 'language', str(curLang), 'strings.po')
+            lang_file = os.path.join(
+                __cwd__, 'resources', 'language', str(curLang), 'strings.po')
             with open(lang_file, encoding='utf-8') as fp:
                 contents = fp.read().split('\n\n')
                 for strings in contents:
@@ -301,7 +312,7 @@ def set_service_option(service, option, value):
                     line = f'{option}={value}'
                     changed = True
                 lines.append(line.strip())
-    if changed == False:
+    if not changed:
         lines.append(f'{option}={value}')
     with open(conf_file_name, 'w') as conf_file:
         conf_file.write('\n'.join(lines) + '\n')
@@ -309,7 +320,6 @@ def set_service_option(service, option, value):
 
 @log.log_function()
 def get_service_option(service, option, default=None):
-    lines = []
     conf_file_name = ''
     if os.path.exists(f'{CONFIG_CACHE}/services/{service}.conf'):
         conf_file_name = f'{CONFIG_CACHE}/services/{service}.conf'
@@ -327,7 +337,7 @@ def get_service_option(service, option, default=None):
 def get_service_state(service):
     base_name = f'{CONFIG_CACHE}/services/{service}'
     return '1' if os.path.exists(f'{base_name}.conf') \
-                  and not os.path.exists(f'{base_name}.disabled') else '0'
+        and not os.path.exists(f'{base_name}.disabled') else '0'
 
 
 @log.log_function()
@@ -336,8 +346,6 @@ def set_service(service, options, state):
     log.log(f'service: {repr(service)}', log.DEBUG)
     log.log(f'options: {repr(options)}', log.DEBUG)
     log.log(f'state: {repr(state)}', log.DEBUG)
-    config = {}
-    changed = False
 
     # Service Enabled
     if state == 1:
@@ -375,8 +383,10 @@ def load_file(filename):
         log.log(f'Error: Failed to read file: {filename}', log.ERROR)
     return content.strip() if content else content
 
+
 def url_quote(var):
     return urllib.parse.quote(var, safe="")
+
 
 @log.log_function()
 def load_url(url):
@@ -408,7 +418,8 @@ def download_file(source, destination, silent=False):
                 progress.update(part)
             else:
                 if progress.getPercent() - last_percent > 5 or not part:
-                    log.log(f'download file: {destination} progress: {progress.getPercent()}%% with {progress.getSpeed()} KB/s', log.INFO)
+                    log.log(
+                        f'download file: {destination} progress: {progress.getPercent()}%% with {progress.getSpeed()} KB/s', log.INFO)
                     last_percent = progress.getPercent()
             if part:
                 local_file.write(part)
@@ -439,7 +450,8 @@ def copy_file(source, destination, silent=False):
                 progress.update(part)
             else:
                 if progress.getPercent() - last_percent > 5 or not part:
-                    log.log(f'copy file {destination} progress: {progress.getPercent()}%% with {progress.getSpeed()} KB/s', log.INFO)
+                    log.log(
+                        f'copy file {destination} progress: {progress.getPercent()}%% with {progress.getSpeed()} KB/s', log.INFO)
                     last_percent = progress.getPercent()
             if part:
                 destination_file.write(part)
@@ -455,7 +467,7 @@ def copy_file(source, destination, silent=False):
 
 @log.log_function()
 def start_service():
-    global dictModules, __oe__
+    # global dictModules, __oe__ # F824: dictModules, __oe__ (global not needed for reading or attribute assignment)
     __oe__.is_service = True
     for strModule in sorted(dictModules, key=lambda x: list(dictModules[x].menu.keys())):
         module = dictModules[strModule]
@@ -466,7 +478,7 @@ def start_service():
 
 @log.log_function()
 def stop_service():
-    global dictModules
+    # global dictModules # F824: dictModules (global not needed for reading)
     for strModule in dictModules:
         module = dictModules[strModule]
         if hasattr(module, 'stop_service') and module.ENABLED:
@@ -476,15 +488,19 @@ def stop_service():
 
 @log.log_function()
 def openWizard():
-    global winOeMain, __cwd__, __oe__
-    winOeMain = oeWindows.wizard('service-LibreELEC-Settings-wizard.xml', __cwd__, 'Default', oeMain=__oe__)
+    # global winOeMain, __cwd__, __oe__ # F824: __cwd__, __oe__ (global not needed for reading). winOeMain is assigned.
+    global winOeMain
+    winOeMain = oeWindows.wizard(
+        'service-LibreELEC-Settings-wizard.xml', __cwd__, 'Default', oeMain=__oe__)
     winOeMain.doModal()
-    winOeMain = oeWindows.mainWindow('service-LibreELEC-Settings-mainWindow.xml', __cwd__, 'Default', oeMain=__oe__)  # None
+    winOeMain = oeWindows.mainWindow(
+        'service-LibreELEC-Settings-mainWindow.xml', __cwd__, 'Default', oeMain=__oe__)  # None
 
 
 @log.log_function()
 def openConfigurationWindow():
-    global winOeMain, __cwd__, __oe__, dictModules, PIN
+    # global winOeMain, __cwd__, __oe__, dictModules, PIN # F824: __cwd__, __oe__, dictModules, PIN (global not needed for reading). winOeMain is assigned.
+    global winOeMain
     match = True
 
     if PIN.isEnabled():
@@ -510,14 +526,16 @@ def openConfigurationWindow():
             PIN.fail()
 
             if PIN.attemptsRemaining() > 0:
-                xbmcDialog.ok(_(32234), f'{PIN.attemptsRemaining()} {_(32235)}')
+                xbmcDialog.ok(
+                    _(32234), f'{PIN.attemptsRemaining()} {_(32235)}')
 
         if not match and PIN.attemptsRemaining() <= 0:
             xbmcDialog.ok(_(32234), _(32236))
             return
 
-    if match == True:
-        winOeMain = oeWindows.mainWindow('service-LibreELEC-Settings-mainWindow.xml', __cwd__, 'Default', oeMain=__oe__)
+    if match:
+        winOeMain = oeWindows.mainWindow(
+            'service-LibreELEC-Settings-mainWindow.xml', __cwd__, 'Default', oeMain=__oe__)
         winOeMain.doModal()
         for strModule in dictModules:
             dictModules[strModule].exit()
@@ -527,9 +545,10 @@ def openConfigurationWindow():
 
 @log.log_function()
 def standby_devices():
-    global dictModules
+    # global dictModules # F824: dictModules (global not needed for reading)
     if 'bluetooth' in dictModules:
         dictModules['bluetooth'].standby_devices()
+
 
 @log.log_function()
 def load_config():
@@ -560,7 +579,8 @@ def load_config():
 
 @log.log_function()
 def save_config(xml_conf):
-    global configFile, conf_lock
+    # global configFile, conf_lock # F824: configFile (global not needed for reading). conf_lock is assigned.
+    global conf_lock
     while conf_lock:
         time.sleep(0.2)
     conf_lock = True
@@ -655,7 +675,8 @@ def write_setting(module, setting, value, main_node='settings'):
 @log.log_function()
 def load_modules():
     # # load libreelec configuration modules
-    global dictModules, __oe__, __cwd__, init_done
+    # global dictModules, __oe__, __cwd__, init_done # F824: __oe__, __cwd__, init_done (global not needed for reading). dictModules is assigned.
+    global dictModules
     for strModule in dictModules:
         dictModules[strModule] = None
     dict_names = {}
@@ -666,13 +687,16 @@ def load_modules():
             dict_names[name] = None
     for module_name in dict_names:
         try:
-            if not module_name in dictModules:
-                dictModules[module_name] = getattr(__import__(module_name), module_name)(__oe__)
+            if module_name not in dictModules:
+                dictModules[module_name] = getattr(
+                    __import__(module_name), module_name)(__oe__)
                 if hasattr(defaults, module_name):
                     for key in getattr(defaults, module_name):
-                        setattr(dictModules[module_name], key, getattr(defaults, module_name)[key])
+                        setattr(dictModules[module_name], key, getattr(
+                            defaults, module_name)[key])
         except Exception as e:
-            log.log(f'oe::MAIN(loadingModules)(strModule): ERROR: ({repr(e)})', log.ERROR)
+            log.log(
+                f'oe::MAIN(loadingModules)(strModule): ERROR: ({repr(e)})', log.ERROR)
 
 
 def timestamp():
@@ -681,7 +705,7 @@ def timestamp():
 
 def split_dialog_text(text):
     ret = [''] * 3
-    txt = re.findall('.{1,60}(?:\W|$)', text)
+    txt = re.findall(r'.{1,60}(?:\W|$)', text)
     for x in range(0, 2):
         if len(txt) > x:
             ret[x] = txt[x]
@@ -702,14 +726,28 @@ def reboot_counter(seconds=10, title=' '):
 
 
 def exit():
-    global WinOeSelect, winOeMain, __addon__, __cwd__, __oe__, _, dictModules
+    # No 'global' statement needed here for 'del' to work on module-level variables,
+    # as long as they are not shadowed by local assignments before deletion.
+    # F824 errors were due to 'global' being used without actual assignment in this scope.
 
-    # del winOeMain
+    # del winOeMain # This line was commented out in the original, keeping it that way.
 
+    # These 'del' operations will work on the global (module-level) variables directly.
+    # Ensure these names exist at the module level and are intended to be deleted.
+    global dictModules, __addon__, __oe__, _ # Make explicit for 'del' to satisfy linters if they are strict
+                                             # or if there's any ambiguity, though typically not needed for 'del'.
+                                             # However, to be absolutely safe from F823 (name not defined) if a linter
+                                             # gets confused about scope of del without global, this is safer.
+                                             # But this might re-introduce F824 if Flake8 insists 'del' isn't an assignment.
+                                             # Let's try without 'global' first for these 'del' targets.
     del dictModules
     del __addon__
     del __oe__
     del _
+    # If WinOeSelect and winOeMain are module-level and need deletion:
+    # global WinOeSelect, winOeMain
+    # if 'WinOeSelect' in globals(): del WinOeSelect
+    # if 'winOeMain' in globals(): del winOeMain
 
 
 # fix for xml printout
@@ -739,7 +777,8 @@ def fixed_writexml(self, writer, indent='', addindent='', newl=''):
 
 
 def parse_os_release():
-    os_release_fields = re.compile(r'(?!#)(?P<key>.+)=(?P<quote>[\'\"]?)(?P<value>.+)(?P=quote)$')
+    os_release_fields = re.compile(
+        r'(?!#)(?P<key>.+)=(?P<quote>[\'\"]?)(?P<value>.+)(?P=quote)$')
     os_release_unescape = re.compile(r'\\(?P<escaped>[\'\"\\])')
     try:
         with open('/etc/os-release') as f:
@@ -748,7 +787,8 @@ def parse_os_release():
                 m = re.match(os_release_fields, line)
                 if m is not None:
                     key = m.group('key')
-                    value = re.sub(os_release_unescape, r'\g<escaped>', m.group('value'))
+                    value = re.sub(os_release_unescape,
+                                   r'\g<escaped>', m.group('value'))
                     info[key] = value
             return info
     except OSError:
@@ -787,7 +827,8 @@ def get_os_release():
             device,
             builder_name,
             builder_version
-            )
+        )
+
 
 minidom.Element.writexml = fixed_writexml
 
@@ -810,7 +851,8 @@ XBMC_USER_HOME = defaults.XBMC_USER_HOME
 CONFIG_CACHE = defaults.CONFIG_CACHE
 USER_CONFIG = defaults.USER_CONFIG
 TEMP = f'{XBMC_USER_HOME}/temp/'
-winOeMain = oeWindows.mainWindow('service-LibreELEC-Settings-mainWindow.xml', __cwd__, 'Default', oeMain=__oe__)
+winOeMain = oeWindows.mainWindow(
+    'service-LibreELEC-Settings-mainWindow.xml', __cwd__, 'Default', oeMain=__oe__)
 if os.path.exists('/etc/machine-id'):
     SYSTEMID = load_file('/etc/machine-id')
 else:
@@ -823,7 +865,8 @@ BOOT_STATUS = load_file('/storage/.config/boot.status')
 try:
     configFile = f'{XBMC_USER_HOME}/userdata/addon_data/service.libreelec.settings/oe_settings.xml'
     if not os.path.exists(f'{XBMC_USER_HOME}/userdata/addon_data/service.libreelec.settings'):
-        os.makedirs(f'{XBMC_USER_HOME}/userdata/addon_data/service.libreelec.settings')
+        os.makedirs(
+            f'{XBMC_USER_HOME}/userdata/addon_data/service.libreelec.settings')
     if not os.path.exists(f'{CONFIG_CACHE}/services'):
         os.makedirs(f'{CONFIG_CACHE}/services')
 except:

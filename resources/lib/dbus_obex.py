@@ -15,6 +15,7 @@ INTERFACE_TRANSFER = 'org.bluez.obex.Transfer1'
 PATH_OBEX = '/org/bluez/obex'
 PATH_AGENT = '/kodi/agent/obex'
 
+
 @ravel.interface(ravel.INTERFACE.SERVER, name=INTERFACE_AGENT)
 class Agent(dbus_utils.Agent):
 
@@ -38,7 +39,7 @@ class Agent(dbus_utils.Agent):
         arg_keys=['path'],
         result_keyword='reply'
     )
-    def AuthorizePush(self, transfer):
+    def AuthorizePush(self, transfer, reply):
         name = self.authorize_push(transfer)
         reply[0] = (dbussy.DBUS.Signature('s'), name)
 
@@ -51,6 +52,7 @@ class Agent(dbus_utils.Agent):
 
     def reject(self, message):
         raise dbussy.DBusError(ERROR_REJECTED, message)
+
 
 class Listener(object):
 
@@ -69,6 +71,7 @@ class Listener(object):
     #     changed = dbus_utils.convert_from_dbussy(changed)
     #     invalidated = dbus_utils.convert_from_dbussy(invalidated)
     #     await self.on_transfer_changed(interface, changed, invalidated, path)
+
 
 def transfer_get_all_properties(path):
     return dbus_utils.call_method(BUS_NAME, path, dbussy.DBUS.INTERFACE_PROPERTIES, 'GetAll', INTERFACE_TRANSFER)

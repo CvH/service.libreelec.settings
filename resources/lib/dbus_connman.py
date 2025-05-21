@@ -173,7 +173,7 @@ def service_set_autoconnect(path, autoconnect):
 
 
 def service_set_domains_configuration(path, domains):
-    return service_set_property(path, 'Domains.Configuration',  (dbussy.DBUS.Signature('as'), domains))
+    return service_set_property(path, 'Domains.Configuration', (dbussy.DBUS.Signature('as'), domains))
 
 
 def service_set_ipv4_configuration(path, ipv4):
@@ -185,7 +185,7 @@ def service_set_ipv6_configuration(path, ipv6):
 
 
 def service_set_nameservers_configuration(path, nameservers):
-    return service_set_property(path, 'Nameservers.Configuration',  (dbussy.DBUS.Signature('as'), nameservers))
+    return service_set_property(path, 'Nameservers.Configuration', (dbussy.DBUS.Signature('as'), nameservers))
 
 
 def service_set_property(path, name, value):
@@ -193,7 +193,7 @@ def service_set_property(path, name, value):
 
 
 def service_set_timeservers_configuration(path, timeservers):
-    return service_set_property(path, 'Timeservers.Configuration',  (dbussy.DBUS.Signature('as'), timeservers))
+    return service_set_property(path, 'Timeservers.Configuration', (dbussy.DBUS.Signature('as'), timeservers))
 
 
 def technology_set_powered(path, state):

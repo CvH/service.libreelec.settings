@@ -16,6 +16,7 @@ import oe
 
 xbmcDialog = xbmcgui.Dialog()
 
+
 class services(modules.Module):
 
     ENABLED = False
@@ -39,7 +40,7 @@ class services(modules.Module):
         'menuLoader': 'load_menu',
         'listTyp': 'list',
         'InfoText': 703,
-        }}
+    }}
 
     @log.log_function()
     def __init__(self, oeMain):
@@ -57,7 +58,7 @@ class services(modules.Module):
                         'action': 'initialize_samba',
                         'type': 'bool',
                         'InfoText': 738,
-                        },
+                    },
                     'samba_workgroup': {
                         'order': 2,
                         'name': 32215,
@@ -67,9 +68,9 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'samba_autostart',
                             'value': ['1'],
-                            },
-                        'InfoText': 758,
                         },
+                        'InfoText': 758,
+                    },
                     'samba_secure': {
                         'order': 3,
                         'name': 32202,
@@ -79,9 +80,9 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'samba_autostart',
                             'value': ['1'],
-                            },
-                        'InfoText': 739,
                         },
+                        'InfoText': 739,
+                    },
                     'samba_username': {
                         'order': 4,
                         'name': 32106,
@@ -91,9 +92,9 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'samba_secure',
                             'value': ['1'],
-                            },
-                        'InfoText': 740,
                         },
+                        'InfoText': 740,
+                    },
                     'samba_password': {
                         'order': 5,
                         'name': 32107,
@@ -103,9 +104,9 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'samba_secure',
                             'value': ['1'],
-                            },
-                        'InfoText': 741,
                         },
+                        'InfoText': 741,
+                    },
                     'samba_minprotocol': {
                         'order': 6,
                         'name': 32217,
@@ -116,13 +117,13 @@ class services(modules.Module):
                             'SMB1',
                             'SMB2',
                             'SMB3',
-                            ],
+                        ],
                         'parent': {
                             'entry': 'samba_autostart',
                             'value': ['1'],
-                            },
-                        'InfoText': 756,
                         },
+                        'InfoText': 756,
+                    },
                     'samba_maxprotocol': {
                         'order': 7,
                         'name': 32218,
@@ -133,13 +134,13 @@ class services(modules.Module):
                             'SMB1',
                             'SMB2',
                             'SMB3',
-                            ],
+                        ],
                         'parent': {
                             'entry': 'samba_autostart',
                             'value': ['1'],
-                            },
-                        'InfoText': 757,
                         },
+                        'InfoText': 757,
+                    },
                     'samba_autoshare': {
                         'order': 8,
                         'name': 32216,
@@ -149,11 +150,11 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'samba_autostart',
                             'value': ['1'],
-                            },
-                        'InfoText': 755,
                         },
+                        'InfoText': 755,
                     },
                 },
+            },
             'ssh': {
                 'order': 2,
                 'name': 32201,
@@ -166,7 +167,7 @@ class services(modules.Module):
                         'action': 'initialize_ssh',
                         'type': 'bool',
                         'InfoText': 742,
-                        },
+                    },
                     'ssh_secure': {
                         'order': 2,
                         'name': 32203,
@@ -176,9 +177,9 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'ssh_autostart',
                             'value': ['1'],
-                            },
-                        'InfoText': 743,
                         },
+                        'InfoText': 743,
+                    },
                     'ssh_passwd': {
                         'order': 3,
                         'name': 32209,
@@ -188,11 +189,11 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'ssh_secure',
                             'value': ['0'],
-                            },
-                        'InfoText': 746,
                         },
+                        'InfoText': 746,
                     },
                 },
+            },
             'avahi': {
                 'order': 3,
                 'name': 32207,
@@ -204,8 +205,8 @@ class services(modules.Module):
                     'action': 'initialize_avahi',
                     'type': 'bool',
                     'InfoText': 744,
-                    }},
-                },
+                }},
+            },
             'cron': {
                 'order': 4,
                 'name': 32319,
@@ -217,8 +218,8 @@ class services(modules.Module):
                     'action': 'initialize_cron',
                     'type': 'bool',
                     'InfoText': 745,
-                    }},
-                },
+                }},
+            },
             'bluez': {
                 'order': 6,
                 'name': 32331,
@@ -231,7 +232,7 @@ class services(modules.Module):
                         'action': 'initialize_bluetooth',
                         'type': 'bool',
                         'InfoText': 720,
-                        },
+                    },
                     'obex_enabled': {
                         'order': 2,
                         'name': 32384,
@@ -241,9 +242,9 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'enabled',
                             'value': ['1'],
-                            },
-                        'InfoText': 751,
                         },
+                        'InfoText': 751,
+                    },
                     'obex_root': {
                         'order': 3,
                         'name': 32385,
@@ -253,9 +254,9 @@ class services(modules.Module):
                         'parent': {
                             'entry': 'obex_enabled',
                             'value': ['1'],
-                            },
-                        'InfoText': 752,
                         },
+                        'InfoText': 752,
+                    },
                     'idle_timeout': {
                         'order': 4,
                         'name': 32400,
@@ -270,16 +271,16 @@ class services(modules.Module):
                             '15',
                             '30',
                             '60',
-                            ],
+                        ],
                         'parent': {
                             'entry': 'enabled',
                             'value': ['1'],
-                            },
-                        'InfoText': 773,
                         },
+                        'InfoText': 773,
                     },
                 },
-            }
+            },
+        }
 
     @log.log_function()
     def start_service(self):
@@ -296,7 +297,8 @@ class services(modules.Module):
 
     @log.log_function()
     def set_value(self, listItem):
-        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty('entry')]['value'] = listItem.getProperty('value')
+        self.struct[listItem.getProperty('category')]['settings'][listItem.getProperty(
+            'entry')]['value'] = listItem.getProperty('value')
 
     @log.log_function()
     def load_menu(self, focusItem):
@@ -306,28 +308,30 @@ class services(modules.Module):
     def load_values(self):
         # SAMBA
         if os.path.isfile(self.SAMBA_NMDB) and os.path.isfile(self.SAMBA_SMDB):
-            self.struct['samba']['settings']['samba_autostart']['value'] = oe.get_service_state('samba')
+            self.struct['samba']['settings']['samba_autostart']['value'] = oe.get_service_state(
+                'samba')
             self.struct['samba']['settings']['samba_workgroup']['value'] = oe.get_service_option('samba', 'SAMBA_WORKGROUP',
-                    self.D_SAMBA_WORKGROUP).replace('"', '')
+                                                                                                 self.D_SAMBA_WORKGROUP).replace('"', '')
             self.struct['samba']['settings']['samba_secure']['value'] = oe.get_service_option('samba', 'SAMBA_SECURE',
-                    self.D_SAMBA_SECURE).replace('true', '1').replace('false', '0').replace('"', '')
+                                                                                              self.D_SAMBA_SECURE).replace('true', '1').replace('false', '0').replace('"', '')
             self.struct['samba']['settings']['samba_username']['value'] = self.sh_unesc_str(oe.get_service_option('samba', 'SAMBA_USERNAME',
-                    self.D_SAMBA_USERNAME).replace('"', ''))
+                                                                                                                  self.D_SAMBA_USERNAME).replace('"', ''))
             self.struct['samba']['settings']['samba_password']['value'] = self.sh_unesc_str(oe.get_service_option('samba', 'SAMBA_PASSWORD',
-                    self.D_SAMBA_PASSWORD).replace('"', ''))
+                                                                                                                  self.D_SAMBA_PASSWORD).replace('"', ''))
             self.struct['samba']['settings']['samba_minprotocol']['value'] = oe.get_service_option('samba', 'SAMBA_MINPROTOCOL',
-                    self.D_SAMBA_MINPROTOCOL).replace('"', '')
+                                                                                                   self.D_SAMBA_MINPROTOCOL).replace('"', '')
             self.struct['samba']['settings']['samba_maxprotocol']['value'] = oe.get_service_option('samba', 'SAMBA_MAXPROTOCOL',
-                    self.D_SAMBA_MAXPROTOCOL).replace('"', '')
+                                                                                                   self.D_SAMBA_MAXPROTOCOL).replace('"', '')
             self.struct['samba']['settings']['samba_autoshare']['value'] = oe.get_service_option('samba', 'SAMBA_AUTOSHARE',
-                    self.D_SAMBA_AUTOSHARE).replace('true', '1').replace('false', '0').replace('"', '')
+                                                                                                 self.D_SAMBA_AUTOSHARE).replace('true', '1').replace('false', '0').replace('"', '')
         else:
             self.struct['samba']['hidden'] = 'true'
         # SSH
         if os.path.isfile(self.SSH_DAEMON):
-            self.struct['ssh']['settings']['ssh_autostart']['value'] = oe.get_service_state('sshd')
+            self.struct['ssh']['settings']['ssh_autostart']['value'] = oe.get_service_state(
+                'sshd')
             self.struct['ssh']['settings']['ssh_secure']['value'] = oe.get_service_option('sshd', 'SSHD_DISABLE_PW_AUTH',
-                    self.D_SSH_DISABLE_PW_AUTH).replace('true', '1').replace('false', '0').replace('"', '')
+                                                                                          self.D_SSH_DISABLE_PW_AUTH).replace('true', '1').replace('false', '0').replace('"', '')
             # hide ssh settings if Kernel Parameter is set
             with open(self.KERNEL_CMD, 'r') as cmd_file:
                 cmd_args = cmd_file.read().split(' ')
@@ -338,22 +342,26 @@ class services(modules.Module):
             self.struct['ssh']['hidden'] = 'true'
         # AVAHI
         if os.path.isfile(self.AVAHI_DAEMON):
-            self.struct['avahi']['settings']['avahi_autostart']['value'] = oe.get_service_state('avahi')
+            self.struct['avahi']['settings']['avahi_autostart']['value'] = oe.get_service_state(
+                'avahi')
         else:
             self.struct['avahi']['hidden'] = 'true'
         # CRON
         if os.path.isfile(self.CRON_DAEMON):
-            self.struct['cron']['settings']['cron_autostart']['value'] = oe.get_service_state('crond')
+            self.struct['cron']['settings']['cron_autostart']['value'] = oe.get_service_state(
+                'crond')
         else:
             self.struct['cron']['hidden'] = 'true'
         # BLUEZ / OBEX
         if 'bluetooth' in oe.dictModules:
             if os.path.isfile(oe.dictModules['bluetooth'].BLUETOOTH_DAEMON):
-                self.struct['bluez']['settings']['enabled']['value'] = oe.get_service_state('bluez')
+                self.struct['bluez']['settings']['enabled']['value'] = oe.get_service_state(
+                    'bluez')
                 if os.path.isfile(oe.dictModules['bluetooth'].OBEX_DAEMON):
-                    self.struct['bluez']['settings']['obex_enabled']['value'] = oe.get_service_state('obexd')
+                    self.struct['bluez']['settings']['obex_enabled']['value'] = oe.get_service_state(
+                        'obexd')
                     self.struct['bluez']['settings']['obex_root']['value'] = oe.get_service_option('obexd', 'OBEXD_ROOT',
-                            oe.dictModules['bluetooth'].D_OBEXD_ROOT).replace('"', '')
+                                                                                                   oe.dictModules['bluetooth'].D_OBEXD_ROOT).replace('"', '')
                 else:
                     self.struct['bluez']['settings']['obex_enabled']['hidden'] = True
                     self.struct['bluez']['settings']['obex_root']['hidden'] = True
@@ -361,7 +369,8 @@ class services(modules.Module):
                 value = oe.read_setting('bluetooth', 'idle_timeout')
                 if not value:
                     value = '0'
-                self.struct['bluez']['settings']['idle_timeout']['value'] = oe.read_setting('bluetooth', 'idle_timeout')
+                self.struct['bluez']['settings']['idle_timeout']['value'] = oe.read_setting(
+                    'bluetooth', 'idle_timeout')
             else:
                 self.struct['bluez']['hidden'] = 'true'
 
@@ -389,8 +398,10 @@ class services(modules.Module):
             options['SAMBA_AUTOSHARE'] = val_autoshare
             options['SAMBA_MINPROTOCOL'] = self.struct['samba']['settings']['samba_minprotocol']['value']
             options['SAMBA_MAXPROTOCOL'] = self.struct['samba']['settings']['samba_maxprotocol']['value']
-            options['SAMBA_USERNAME'] = self.sh_esc_str(self.struct['samba']['settings']['samba_username']['value'])
-            options['SAMBA_PASSWORD'] = self.sh_esc_str(self.struct['samba']['settings']['samba_password']['value'])
+            options['SAMBA_USERNAME'] = self.sh_esc_str(
+                self.struct['samba']['settings']['samba_username']['value'])
+            options['SAMBA_PASSWORD'] = self.sh_esc_str(
+                self.struct['samba']['settings']['samba_password']['value'])
         else:
             state = 0
             self.struct['samba']['settings']['samba_username']['hidden'] = True
@@ -470,7 +481,8 @@ class services(modules.Module):
     def idle_timeout(self, **kwargs):
         if 'listItem' in kwargs:
             self.set_value(kwargs['listItem'])
-        oe.write_setting('bluetooth', 'idle_timeout', self.struct['bluez']['settings']['idle_timeout']['value'])
+        oe.write_setting('bluetooth', 'idle_timeout',
+                         self.struct['bluez']['settings']['idle_timeout']['value'])
 
     @log.log_function()
     def do_wizard(self):
@@ -490,14 +502,18 @@ class services(modules.Module):
     @log.log_function()
     def set_wizard_buttons(self):
         if self.struct['ssh']['settings']['ssh_autostart']['value'] == '1':
-            oe.winOeMain.set_wizard_radiobutton_1(oe._(32201), self, 'wizard_set_ssh', True)
+            oe.winOeMain.set_wizard_radiobutton_1(
+                oe._(32201), self, 'wizard_set_ssh', True)
         else:
-            oe.winOeMain.set_wizard_radiobutton_1(oe._(32201), self, 'wizard_set_ssh')
-        if not 'hidden' in self.struct['samba']:
+            oe.winOeMain.set_wizard_radiobutton_1(
+                oe._(32201), self, 'wizard_set_ssh')
+        if 'hidden' not in self.struct['samba']:
             if self.struct['samba']['settings']['samba_autostart']['value'] == '1':
-                oe.winOeMain.set_wizard_radiobutton_2(oe._(32200), self, 'wizard_set_samba', True)
+                oe.winOeMain.set_wizard_radiobutton_2(
+                    oe._(32200), self, 'wizard_set_samba', True)
             else:
-                oe.winOeMain.set_wizard_radiobutton_2(oe._(32200), self, 'wizard_set_samba')
+                oe.winOeMain.set_wizard_radiobutton_2(
+                    oe._(32200), self, 'wizard_set_samba')
 
     @log.log_function()
     def wizard_set_ssh(self):
@@ -529,8 +545,9 @@ class services(modules.Module):
     @log.log_function()
     def wizard_sshpasswd(self):
         SSHresult = False
-        while SSHresult == False:
-            changeSSH = xbmcDialog.yesno(oe._(32209), oe._(32210), yeslabel=oe._(32213), nolabel=oe._(32214))
+        while not SSHresult:
+            changeSSH = xbmcDialog.yesno(oe._(32209), oe._(
+                32210), yeslabel=oe._(32213), nolabel=oe._(32214))
             if changeSSH:
                 SSHresult = True
             else:
@@ -550,10 +567,11 @@ class services(modules.Module):
                 shutil.copy2('/usr/cache/shadow', '/storage/.cache/shadow')
                 readout3 = "Retype password"
             else:
-                ssh = subprocess.Popen(["passwd"], shell=False, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=0)
-                readout1 = ssh.stdout.readline()
+                ssh = subprocess.Popen(["passwd"], shell=False, stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, bufsize=0)
+                ssh.stdout.readline()  # Consume "New password:" prompt
                 ssh.stdin.write(f'{newpwd}\n')
-                readout2 = ssh.stdout.readline()
+                ssh.stdout.readline()  # Consume "Retype new password:" prompt
                 ssh.stdin.write(f'{newpwd}\n')
                 readout3 = ssh.stdout.readline()
             if "Bad password" in readout3:

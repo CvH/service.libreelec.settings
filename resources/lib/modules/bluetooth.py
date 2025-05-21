@@ -29,7 +29,7 @@ class bluetooth(modules.Module):
         'menuLoader': 'menu_connections',
         'listTyp': 'btlist',
         'InfoText': 704,
-        }}
+    }}
     ENABLED = False
     OBEX_ROOT = None
     OBEX_DAEMON = None
@@ -92,27 +92,29 @@ class bluetooth(modules.Module):
 
     @log.log_function()
     def stop_service(self):
-        if hasattr(self, 'dbusBluezAdapter') and self.dbusBluezAdapter is not None:
+        if self.dbusBluezAdapter and hasattr(self, 'bluez_agent'):  # Ensure bluez_agent exists
             self.bluez_agent.unregister_agent()
-        if hasattr(self, 'discovery_thread'):
+        
+        if hasattr(self, 'discovery_thread') and self.discovery_thread:  # Check if it exists and is not None
             try:
                 self.discovery_thread.stop()
                 self.discovery_thread.join()
-                del self.discovery_thread
-            except AttributeError:
-                pass
-        if hasattr(self, 'dbusBluezAdapter'):
-            self.dbusBluezAdapter = None
+            except Exception as exc:
+                log.log(f"Error stopping/joining discovery_thread: {exc!r}", log.ERROR)
+            self.discovery_thread = None  # Set to None instead of del
+        
+        self.dbusBluezAdapter = None
 
     @log.log_function()
     def exit(self):
-        if hasattr(self, 'discovery_thread'):
+        if hasattr(self, 'discovery_thread') and self.discovery_thread:  # Check if it exists and is not None
             try:
                 self.discovery_thread.stop()
                 self.discovery_thread.join()
-                del self.discovery_thread
-            except AttributeError:
-                pass
+            except Exception as exc:
+                log.log(f"Error stopping/joining discovery_thread in exit: {exc!r}", log.ERROR)
+            self.discovery_thread = None  # Set to None instead of del
+        
         self.clear_list()
         self.visible = False
 
@@ -128,7 +130,8 @@ class bluetooth(modules.Module):
 
     @log.log_function()
     def init_adapter(self):
-        dbus_bluez.adapter_set_alias(self.dbusBluezAdapter, hostname.get_hostname())
+        dbus_bluez.adapter_set_alias(
+            self.dbusBluezAdapter, hostname.get_hostname())
         dbus_bluez.adapter_set_powered(self.dbusBluezAdapter, True)
 
     @log.log_function()
@@ -156,7 +159,8 @@ class bluetooth(modules.Module):
     @log.log_function()
     def init_device(self, listItem=None):
         if listItem is None:
-            listItem = oe.winOeMain.getControl(oe.listObject['btlist']).getSelectedItem()
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['btlist']).getSelectedItem()
         if listItem is None:
             return
         if listItem.getProperty('Paired') != '1':
@@ -170,7 +174,8 @@ class bluetooth(modules.Module):
         # # This function is used to Pair PS3 Remote without auth
         # ########################################################
         if listItem is None:
-            listItem = oe.winOeMain.getControl(oe.listObject['btlist']).getSelectedItem()
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['btlist']).getSelectedItem()
         if listItem is None:
             return
         self.trust_device(listItem.getProperty('entry'))
@@ -202,7 +207,8 @@ class bluetooth(modules.Module):
     def pair_device(self, path):
         try:
             dbus_bluez.device_pair(path)
-            listItem = oe.winOeMain.getControl(oe.listObject['btlist']).getSelectedItem()
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['btlist']).getSelectedItem()
             if listItem is None:
                 return
             self.trust_device(listItem.getProperty('entry'))
@@ -226,7 +232,8 @@ class bluetooth(modules.Module):
     @log.log_function()
     def disconnect_device(self, listItem=None):
         if listItem is None:
-            listItem = self.oe.winOeMain.getControl(self.oe.listObject['btlist']).getSelectedItem()
+            listItem = self.oe.winOeMain.getControl(
+                self.oe.listObject['btlist']).getSelectedItem()
         if listItem is None:
             return
         self.disconnect_device_by_path(listItem.getProperty('entry'))
@@ -242,10 +249,12 @@ class bluetooth(modules.Module):
     @log.log_function()
     def remove_device(self, listItem=None):
         if listItem is None:
-            listItem = oe.winOeMain.getControl(oe.listObject['btlist']).getSelectedItem()
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['btlist']).getSelectedItem()
         if listItem is None:
             return
-        log.log(f"remove_device->entry: {listItem.getProperty('entry')}", log.DEBUG)
+        log.log(
+            f"remove_device->entry: {listItem.getProperty('entry')}", log.DEBUG)
         path = listItem.getProperty('entry')
         dbus_bluez.adapter_remove_device(self.dbusBluezAdapter, path)
         self.disable_device_standby(listItem)
@@ -257,9 +266,10 @@ class bluetooth(modules.Module):
 
     @log.log_function()
     def dbus_error_handler(self, error):
-        log.log(f'error message: {repr(error.message)}', log.DEBUG)
-        oe.notify('Bluetooth error', error.message.split('.')[0], 'bt')
-        if hasattr(self, 'pinkey_window'):
+        log.log(f"DBusError name: {error.name}, message: {error.message}", log.ERROR)
+        # Keep notification brief for UI, full error is in logs
+        oe.notify('Bluetooth error', error.message.split('.')[0], 'bt') 
+        if hasattr(self, 'pinkey_window') and self.pinkey_window:
             self.close_pinkey_window()
 
     # ###################################################################
@@ -359,13 +369,15 @@ class bluetooth(modules.Module):
                         value = str(int(value))
                     dictProperties[name] = value
             if dbusDevice in new_devices:
-                self.listItems[dbusDevice] = oe.winOeMain.addConfigItem(apName, dictProperties, oe.listObject['btlist'])
+                self.listItems[dbusDevice] = oe.winOeMain.addConfigItem(
+                    apName, dictProperties, oe.listObject['btlist'])
             else:
                 if dbusDevice in self.listItems:
                     self.listItems[dbusDevice].setLabel(apName)
                     for dictProperty in dictProperties:
                         try:
-                            self.listItems[dbusDevice].setProperty(dictProperty, dictProperties[dictProperty])
+                            self.listItems[dbusDevice].setProperty(
+                                dictProperty, dictProperties[dictProperty])
                         except KeyError as e:
                             log.log(f'Suppressed error: {repr(e)}', log.INFO)
             for dbusDevice in deactivated_devices:
@@ -389,22 +401,23 @@ class bluetooth(modules.Module):
     def open_context_menu(self, listItem):
         values = {}
         if listItem is None:
-            listItem = oe.winOeMain.getControl(oe.listObject['btlist']).getSelectedItem()
+            listItem = oe.winOeMain.getControl(
+                oe.listObject['btlist']).getSelectedItem()
         if listItem.getProperty('Paired') != '1':
             values[1] = {
                 'text': oe._(32145),
                 'action': 'init_device',
-                }
+            }
             if listItem.getProperty('Trusted') != '1':
                 values[2] = {
                     'text': oe._(32358),
                     'action': 'trust_connect_device',
-                    }
+                }
         if listItem.getProperty('Connected') == '1':
             values[3] = {
                 'text': oe._(32143),
                 'action': 'disconnect_device',
-                }
+            }
             devices = oe.read_setting('bluetooth', 'standby')
             if devices is not None:
                 devices = devices.split(',')
@@ -414,30 +427,30 @@ class bluetooth(modules.Module):
                 values[4] = {
                     'text': oe._(32389),
                     'action': 'disable_device_standby',
-                    }
+                }
             else:
                 values[4] = {
                     'text': oe._(32388),
                     'action': 'enable_device_standby',
-                    }
+                }
         elif listItem.getProperty('Paired') == '1':
             values[1] = {
                 'text': oe._(32144),
                 'action': 'init_device',
-                }
+            }
         elif listItem.getProperty('Trusted') == '1':
             values[2] = {
                 'text': oe._(32144),
                 'action': 'trust_connect_device',
-                }
+            }
         values[5] = {
             'text': oe._(32141),
             'action': 'remove_device',
-            }
+        }
         values[6] = {
             'text': oe._(32142),
             'action': 'menu_connections',
-            }
+        }
         items = []
         actions = []
         for key in list(values.keys()):
@@ -451,7 +464,8 @@ class bluetooth(modules.Module):
 
     @log.log_function()
     def open_pinkey_window(self, runtime=60, title=32343):
-        self.pinkey_window = oeWindows.pinkeyWindow('service-LibreELEC-Settings-getPasskey.xml', oe.__cwd__, 'Default')
+        self.pinkey_window = oeWindows.pinkeyWindow(
+            'service-LibreELEC-Settings-getPasskey.xml', oe.__cwd__, 'Default')
         self.pinkey_window.show()
         self.pinkey_window.set_title(oe._(title))
         self.pinkey_timer = pinkeyTimer(self, runtime)
@@ -479,7 +493,7 @@ class bluetooth(modules.Module):
 
 
 ####################################################################
-## Bluez Listener class
+# Bluez Listener class
 ####################################################################
 class Bluez_Listener(dbus_bluez.Listener):
 
@@ -517,17 +531,18 @@ class Bluez_Listener(dbus_bluez.Listener):
                 'Class',
                 'Trusted',
                 'Icon',
-                ]
+            ]
             if path in self.parent.listItems:
                 for prop in changed:
                     if prop in properties:
-                        self.parent.listItems[path].setProperty(str(prop), str(changed[prop]))
+                        self.parent.listItems[path].setProperty(
+                            str(prop), str(changed[prop]))
             else:
                 self.parent.discover_devices()
 
 
 ####################################################################
-## Obex Listener class
+# Obex Listener class
 ####################################################################
 
 class Obex_Listener(dbus_obex.Listener):
@@ -579,7 +594,7 @@ class Obex_Listener(dbus_obex.Listener):
 
 
 ####################################################################
-## Bluetooth Agent class
+# Bluetooth Agent class
 ####################################################################
 
 class Bluez_Agent(dbus_bluez.Agent):
@@ -608,7 +623,8 @@ class Bluez_Agent(dbus_bluez.Agent):
     @log.log_function()
     def request_passkey(self, device):
         xbmcDialog = xbmcgui.Dialog()
-        passkey = int(xbmcDialog.numeric(0, 'Enter passkey (number in 0-999999)', '0'))
+        passkey = int(xbmcDialog.numeric(
+            0, 'Enter passkey (number in 0-999999)', '0'))
         return passkey
 
     @log.log_function()
@@ -651,7 +667,7 @@ class Bluez_Agent(dbus_bluez.Agent):
 
 
 ####################################################################
-## Obex Agent class
+# Obex Agent class
 ####################################################################
 
 class Obex_Agent(dbus_obex.Agent):
@@ -664,7 +680,8 @@ class Obex_Agent(dbus_obex.Agent):
     def authorize_push(self, transfer):
         xbmcDialog = xbmcgui.Dialog()
         properties = self.transfer_get_all_properties(transfer)
-        answer = xbmcDialog.yesno('Bluetooth', f"{oe._(32381)}\n\n{properties['Name']}")
+        answer = xbmcDialog.yesno(
+            'Bluetooth', f"{oe._(32381)}\n\n{properties['Name']}")
         log.log(f'answer={repr(answer)}', log.DEBUG)
         if answer != 1:
             self.reject('Not Authorized')
@@ -709,8 +726,8 @@ class discoveryThread(threading.Thread):
         self._stop_event.clear()
         while not self.stopped and not oe.xbmcm.abortRequested():
             current_time = time.monotonic()
-            if (self.main_menu.getSelectedItem().getProperty('modul') == 'bluetooth'
-                    and current_time > self.last_run + BT_DEVICES_LIST_REFRESH_INTERVAL_SECONDS):
+            if (self.main_menu.getSelectedItem().getProperty('modul') == 'bluetooth' and
+                    current_time > self.last_run + BT_DEVICES_LIST_REFRESH_INTERVAL_SECONDS):
                 self.parent.discover_devices()
                 self.last_run = current_time
             elif self.main_menu.getSelectedItem().getProperty('modul') != 'bluetooth':
@@ -750,7 +767,8 @@ class pinkeyTimer(threading.Thread):
         self.endtime = self.start_time + self.runtime
         while not self.stopped and not oe.xbmcm.abortRequested():
             current_time = time.monotonic()
-            percent = round(100 / self.runtime * (self.endtime - current_time), 0)
+            percent = round(100 / self.runtime *
+                            (self.endtime - current_time), 0)
             self.parent.pinkey_window.getControl(1704).setPercent(percent)
             if current_time >= self.endtime:
                 self.stopped = True

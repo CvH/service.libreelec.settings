@@ -21,8 +21,8 @@ USER_CONFIG = os.environ.get('USER_CONFIG', '/storage/.config')
 connman = {
     'CONNMAN_DAEMON': '/usr/sbin/connmand',
     'WAIT_CONF_FILE': f'{CONFIG_CACHE}/libreelec/network_wait',
-    'ENABLED': lambda : (True if os.path.exists(connman['CONNMAN_DAEMON']) and not os.path.exists('/dev/.kernel_ipconfig') else False),
-    }
+    'ENABLED': lambda: (True if os.path.exists(connman['CONNMAN_DAEMON']) and not os.path.exists('/dev/.kernel_ipconfig') else False),
+}
 connman['ENABLED'] = connman['ENABLED']()
 
 ################################################################################
@@ -32,9 +32,9 @@ connman['ENABLED'] = connman['ENABLED']()
 bluetooth = {
     'BLUETOOTH_DAEMON': '/usr/lib/bluetooth/bluetoothd',
     'OBEX_DAEMON': '/usr/lib/bluetooth/obexd',
-    'ENABLED': lambda : (True if os.path.exists(bluetooth['BLUETOOTH_DAEMON']) else False),
+    'ENABLED': lambda: (True if os.path.exists(bluetooth['BLUETOOTH_DAEMON']) else False),
     'D_OBEXD_ROOT': '/storage/downloads/',
-    }
+}
 bluetooth['ENABLED'] = bluetooth['ENABLED']()
 
 ################################################################################
@@ -58,7 +58,7 @@ services = {
     'D_SSH_DISABLE_PW_AUTH': '0',
     'AVAHI_DAEMON': '/usr/sbin/avahi-daemon',
     'CRON_DAEMON': '/sbin/crond',
-    }
+}
 
 system = {
     'ENABLED': True,
@@ -74,23 +74,23 @@ system = {
         USER_CONFIG,
         CONFIG_CACHE,
         '/storage/.ssh',
-        ],
-    'BACKUP_FILTER' : [
+    ],
+    'BACKUP_FILTER': [
         f'{XBMC_USER_HOME}/addons/packages',
         f'{XBMC_USER_HOME}/addons/temp',
         f'{XBMC_USER_HOME}/temp'
-        ],
+    ],
     'BACKUP_DESTINATION': '/storage/backup/',
     'RESTORE_DIR': '/storage/.restore/',
     'JOURNALD_CONFIG_FILE': '/storage/.cache/journald.conf.d/00_settings.conf'
-    }
+}
 
 updates = {
     'ENABLED': not os.path.exists('/dev/.update_disabled'),
     'UPDATE_REQUEST_URL': 'https://update.libreelec.tv/updates.php',
     'UPDATE_DOWNLOAD_URL': 'http://%s.libreelec.tv/%s',
     'LOCAL_UPDATE_DIR': '/storage/.update/',
-    }
+}
 
 about = {'ENABLED': True}
 
@@ -102,4 +102,4 @@ _services = {
     'obexd': ['obex.service'],
     'crond': ['cron.service'],
     'iptables': ['iptables.service'],
-    }
+}

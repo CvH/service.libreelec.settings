@@ -24,6 +24,7 @@ _HEADER = 'SETTINGS: '
 try:
     import xbmc
     _NO_DEBUG_ENV = os.environ.get('DEBUG', 'no') == 'no'
+
     def _log(message, level=_DEFAULT):
         if level == DEBUG and _NO_DEBUG_ENV:
             return
@@ -60,6 +61,7 @@ def log_object_state(obj, level=_DEFAULT):
 def log_function(level=_DEFAULT):
     def _log_function_1(function):
         header = f'{_HEADER}{function.__qualname__} '
+
         @wraps(function)
         def _log_function_2(*args, **kwargs):
             try:
@@ -87,6 +89,7 @@ def log_function(level=_DEFAULT):
 
 def utf8ify(pstr):
     return pstr.encode('utf-8', 'replace').decode('utf-8')
+
 
 def asciify(pstr):
     return pstr.encode('ascii', 'replace').decode('utf-8')
