@@ -5,14 +5,16 @@
 
 import os
 
+# Import config to use its path definitions
+from . import config as addon_config
 
 ################################################################################
 # Base
 ################################################################################
 
 XBMC_USER_HOME = os.environ.get('XBMC_USER_HOME', '/storage/.kodi')
-CONFIG_CACHE = os.environ.get('CONFIG_CACHE', '/storage/.cache')
-USER_CONFIG = os.environ.get('USER_CONFIG', '/storage/.config')
+# CONFIG_CACHE and USER_CONFIG are now primarily defined in config.py
+# and accessed via addon_config.CONFIG_CACHE and addon_config.USER_CONFIG
 
 ################################################################################
 # Connamn Module
@@ -20,10 +22,11 @@ USER_CONFIG = os.environ.get('USER_CONFIG', '/storage/.config')
 
 connman = {
     'CONNMAN_DAEMON': '/usr/sbin/connmand',
-    'WAIT_CONF_FILE': f'{CONFIG_CACHE}/libreelec/network_wait',
+    'WAIT_CONF_FILE': f'{addon_config.CONFIG_CACHE}/libreelec/network_wait', # Updated path
+    # ENABLED is now a callable lambda to be evaluated at runtime
     'ENABLED': lambda : (True if os.path.exists(connman['CONNMAN_DAEMON']) and not os.path.exists('/dev/.kernel_ipconfig') else False),
     }
-connman['ENABLED'] = connman['ENABLED']()
+# connman['ENABLED'] = connman['ENABLED']() # Removed immediate execution
 
 ################################################################################
 # Bluez Module
@@ -32,10 +35,11 @@ connman['ENABLED'] = connman['ENABLED']()
 bluetooth = {
     'BLUETOOTH_DAEMON': '/usr/lib/bluetooth/bluetoothd',
     'OBEX_DAEMON': '/usr/lib/bluetooth/obexd',
+    # ENABLED is now a callable lambda to be evaluated at runtime
     'ENABLED': lambda : (True if os.path.exists(bluetooth['BLUETOOTH_DAEMON']) else False),
     'D_OBEXD_ROOT': '/storage/downloads/',
     }
-bluetooth['ENABLED'] = bluetooth['ENABLED']()
+# bluetooth['ENABLED'] = bluetooth['ENABLED']() # Removed immediate execution
 
 ################################################################################
 # Service Module
@@ -64,15 +68,15 @@ system = {
     'ENABLED': True,
     'KERNEL_CMD': '/proc/cmdline',
     'SET_CLOCK_CMD': '/sbin/hwclock --systohc --utc',
-    'XBMC_RESET_FILE': f'{CONFIG_CACHE}/reset_soft',
-    'LIBREELEC_RESET_FILE': f'{CONFIG_CACHE}/reset_hard',
+    'XBMC_RESET_FILE': f'{addon_config.CONFIG_CACHE}/reset_soft', # Updated path
+    'LIBREELEC_RESET_FILE': f'{addon_config.CONFIG_CACHE}/reset_hard', # Updated path
     'KEYBOARD_INFO': '/usr/share/X11/xkb/rules/base.xml',
-    'UDEV_KEYBOARD_INFO': f'{CONFIG_CACHE}/xkb/layout',
+    'UDEV_KEYBOARD_INFO': f'{addon_config.CONFIG_CACHE}/xkb/layout', # Updated path
     'NOX_KEYBOARD_INFO': '/usr/lib/keymaps',
     'BACKUP_DIRS': [
         XBMC_USER_HOME,
-        USER_CONFIG,
-        CONFIG_CACHE,
+        addon_config.USER_CONFIG, # Updated path
+        addon_config.CONFIG_CACHE, # Updated path
         '/storage/.ssh',
         ],
     'BACKUP_FILTER' : [

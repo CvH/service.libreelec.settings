@@ -10,6 +10,7 @@ import hashlib
 import importlib
 import locale
 import os
+import threading
 import re
 import sys
 import time
@@ -37,7 +38,7 @@ xbmcDialog = xbmcgui.Dialog()
 xbmcm = xbmc.Monitor()
 
 is_service = False
-conf_lock = False
+conf_lock = threading.Lock() # Changed from False to threading.Lock()
 xbmcIsPlaying = 0
 input_request = False
 dictModules = {}
@@ -63,13 +64,7 @@ CANCEL = (
 ###############################################################################
 ########################## initialize module ##################################
 ## set default encoding
-
-try:
-    encoding = locale.getpreferredencoding(do_setlocale=True)
-    importlib.reload(sys)
-    # sys.setdefaultencoding(encoding)
-except Exception as e:
-    log.log(f'## LibreELEC Addon ## oe:encoding: ERROR: ({repr(e)})', log.ERROR)
+# Removed Python 2 encoding relics
 
 ## load oeSettings modules
 
@@ -459,7 +454,9 @@ def start_service():
     __oe__.is_service = True
     for strModule in sorted(dictModules, key=lambda x: list(dictModules[x].menu.keys())):
         module = dictModules[strModule]
-        if hasattr(module, 'start_service') and module.ENABLED:
+        # Check if ENABLED is a callable (lambda) or a direct boolean
+        is_enabled = module.ENABLED() if callable(module.ENABLED) else module.ENABLED
+        if hasattr(module, 'start_service') and is_enabled:
             module.start_service()
     __oe__.is_service = False
 
@@ -469,7 +466,8 @@ def stop_service():
     global dictModules
     for strModule in dictModules:
         module = dictModules[strModule]
-        if hasattr(module, 'stop_service') and module.ENABLED:
+        is_enabled = module.ENABLED() if callable(module.ENABLED) else module.ENABLED
+        if hasattr(module, 'stop_service') and is_enabled:
             module.stop_service()
     log.log('## LibreELEC Addon ## STOP SERVICE DONE !', log.INFO)
 
@@ -531,42 +529,38 @@ def standby_devices():
     if 'bluetooth' in dictModules:
         dictModules['bluetooth'].standby_devices()
 
+# TODO: Consider replacing minidom with xml.etree.ElementTree or JSON 
+# if XML parsing becomes a performance bottleneck or for simplification.
 @log.log_function()
 def load_config():
-    global conf_lock
-    while conf_lock:
-        time.sleep(0.2)
-    conf_lock = True
-    if os.path.exists(configFile):
-        config_file = open(configFile, 'r')
-        config_text = config_file.read()
-        config_file.close()
-    else:
-        config_text = ''
-    if config_text == '':
-        xml_conf = minidom.Document()
-        xml_main = xml_conf.createElement('libreelec')
-        xml_conf.appendChild(xml_main)
-        xml_sub = xml_conf.createElement('addon_config')
-        xml_main.appendChild(xml_sub)
-        xml_sub = xml_conf.createElement('settings')
-        xml_main.appendChild(xml_sub)
-        config_text = xml_conf.toprettyxml()
-    else:
-        xml_conf = minidom.parseString(config_text)
-    conf_lock = False
-    return xml_conf
+    global conf_lock # Still need global to access the lock object
+    with conf_lock: # Use with statement for automatic lock acquisition/release
+        if os.path.exists(configFile):
+            config_file = open(configFile, 'r')
+            config_text = config_file.read()
+            config_file.close()
+        else:
+            config_text = ''
+        if config_text == '':
+            xml_conf = minidom.Document()
+            xml_main = xml_conf.createElement('libreelec')
+            xml_conf.appendChild(xml_main)
+            xml_sub = xml_conf.createElement('addon_config')
+            xml_main.appendChild(xml_sub)
+            xml_sub = xml_conf.createElement('settings')
+            xml_main.appendChild(xml_sub)
+            # config_text = xml_conf.toprettyxml() # Not needed if we return xml_conf
+        else:
+            xml_conf = minidom.parseString(config_text)
+        return xml_conf
 
 
 @log.log_function()
 def save_config(xml_conf):
-    global configFile, conf_lock
-    while conf_lock:
-        time.sleep(0.2)
-    conf_lock = True
-    with open(configFile, 'w') as config_file:
-        config_file.write(xml_conf.toprettyxml())
-    conf_lock = False
+    global configFile, conf_lock # Still need global to access the lock object
+    with conf_lock: # Use with statement for automatic lock acquisition/release
+        with open(configFile, 'w') as config_file:
+            config_file.write(xml_conf.toprettyxml())
 
 
 @log.log_function()
@@ -654,6 +648,8 @@ def write_setting(module, setting, value, main_node='settings'):
 
 @log.log_function()
 def load_modules():
+    # TODO: Refine module loading error handling to be more specific about 
+    # which module failed to load and why.
     # # load libreelec configuration modules
     global dictModules, __oe__, __cwd__, init_done
     for strModule in dictModules:
@@ -715,6 +711,7 @@ def exit():
 # fix for xml printout
 
 def fixed_writexml(self, writer, indent='', addindent='', newl=''):
+    # This function is a monkeypatch for minidom.Element.writexml
     writer.write(f'{indent}<{self.tagName}')
     attrs = self._get_attributes()
     a_names = list(attrs.keys())
@@ -737,79 +734,33 @@ def fixed_writexml(self, writer, indent='', addindent='', newl=''):
     else:
         writer.write(f'/>{newl}')
 
-
-def parse_os_release():
-    os_release_fields = re.compile(r'(?!#)(?P<key>.+)=(?P<quote>[\'\"]?)(?P<value>.+)(?P=quote)$')
-    os_release_unescape = re.compile(r'\\(?P<escaped>[\'\"\\])')
-    try:
-        with open('/etc/os-release') as f:
-            info = {}
-            for line in f:
-                m = re.match(os_release_fields, line)
-                if m is not None:
-                    key = m.group('key')
-                    value = re.sub(os_release_unescape, r'\g<escaped>', m.group('value'))
-                    info[key] = value
-            return info
-    except OSError:
-        return None
-
-
-def get_os_release():
-    distribution = version = version_id = architecture = build = project = device = builder_name = builder_version = ''
-    os_release_info = parse_os_release()
-    if os_release_info is not None:
-        if 'NAME' in os_release_info:
-            distribution = os_release_info['NAME']
-        if 'VERSION' in os_release_info:
-            version = os_release_info['VERSION']
-        if 'VERSION_ID' in os_release_info:
-            version_id = os_release_info['VERSION_ID']
-        if 'DISTRO_ARCH' in os_release_info:
-            architecture = os_release_info['DISTRO_ARCH']
-        if 'DISTRO_BUILD' in os_release_info:
-            build = os_release_info['DISTRO_BUILD']
-        if 'DISTRO_PROJECT' in os_release_info:
-            project = os_release_info['DISTRO_PROJECT']
-        if 'DISTRO_DEVICE' in os_release_info:
-            device = os_release_info['DISTRO_DEVICE']
-        if 'BUILDER_NAME' in os_release_info:
-            builder_name = os_release_info['BUILDER_NAME']
-        if 'BUILDER_VERSION' in os_release_info:
-            builder_version = os_release_info['BUILDER_VERSION']
-        return (
-            distribution,
-            version,
-            version_id,
-            architecture,
-            build,
-            project,
-            device,
-            builder_name,
-            builder_version
-            )
+# Removed parse_os_release() and get_os_release() functions.
+# OS release information will be sourced from addon_config.OS_RELEASE.
 
 minidom.Element.writexml = fixed_writexml
 
 ############################################################################################
 # Base Environment
 ############################################################################################
+# Import config centrally for path constants
+from . import config as addon_config
 
-os_release_data = get_os_release()
-DISTRIBUTION = os_release_data[0]
-VERSION = os_release_data[1]
-VERSION_ID = os_release_data[2]
-ARCHITECTURE = os_release_data[3]
-BUILD = os_release_data[4]
-PROJECT = os_release_data[5]
-DEVICE = os_release_data[6]
-BUILDER_NAME = os_release_data[7]
-BUILDER_VERSION = os_release_data[8]
-DOWNLOAD_DIR = '/storage/downloads'
-XBMC_USER_HOME = defaults.XBMC_USER_HOME
-CONFIG_CACHE = defaults.CONFIG_CACHE
-USER_CONFIG = defaults.USER_CONFIG
-TEMP = f'{XBMC_USER_HOME}/temp/'
+# Use addon_config.OS_RELEASE which is populated by os_tools.read_shell_settings
+DISTRIBUTION = addon_config.OS_RELEASE.get('NAME', '')
+VERSION = addon_config.OS_RELEASE.get('VERSION', '')
+VERSION_ID = addon_config.OS_RELEASE.get('VERSION_ID', '')
+ARCHITECTURE = addon_config.OS_RELEASE.get('DISTRO_ARCH', '')
+BUILD = addon_config.OS_RELEASE.get('DISTRO_BUILD', '')
+PROJECT = addon_config.OS_RELEASE.get('DISTRO_PROJECT', '')
+DEVICE = addon_config.OS_RELEASE.get('DISTRO_DEVICE', '')
+BUILDER_NAME = addon_config.OS_RELEASE.get('BUILDER_NAME', '')
+BUILDER_VERSION = addon_config.OS_RELEASE.get('BUILDER_VERSION', '')
+DOWNLOAD_DIR = '/storage/downloads' # This could also be moved to config.py if desired
+XBMC_USER_HOME = defaults.XBMC_USER_HOME # XBMC_USER_HOME is still defined in defaults.py
+# Use addon_config for CONFIG_CACHE and USER_CONFIG
+CONFIG_CACHE = addon_config.CONFIG_CACHE
+USER_CONFIG = addon_config.USER_CONFIG
+TEMP = f'{XBMC_USER_HOME}/temp/' # XBMC_USER_HOME is from defaults, TEMP uses it.
 winOeMain = oeWindows.mainWindow('service-LibreELEC-Settings-mainWindow.xml', __cwd__, 'Default', oeMain=__oe__)
 if os.path.exists('/etc/machine-id'):
     SYSTEMID = load_file('/etc/machine-id')

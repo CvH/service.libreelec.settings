@@ -19,6 +19,9 @@ def get_timezone():
 
 def guess_timezone():
     '''Guess the device's timezone based on the public IP of the device.'''
+    # TODO: Ensure UI calling this function handles potential failures gracefully
+    # (e.g., network errors, unexpected API response from IP info services).
+    # Consider adding more specific error handling here for different failure modes.
     def QueryWebServer(url):
         '''Query a webserver for a response.'''
         try:

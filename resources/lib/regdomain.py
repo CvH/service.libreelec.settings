@@ -8,6 +8,10 @@ import os_tools
 
 
 REGDOMAIN_DEFAULT = 'NOT SET (DEFAULT)'
+# TODO: The current string parsing for country codes and names from REGDOMAIN_LIST is fragile
+# (e.g., code_from_list[-2:], regdomain[-3:-1]). Consider storing REGDOMAIN_LIST as
+# structured data (e.g., list of tuples/dicts) or use more robust regex parsing
+# if the format of descriptions changes.
 REGDOMAIN_LIST = [REGDOMAIN_DEFAULT] + [
     "GLOBAL (00)",
     "Afghanistan (AF)",

@@ -30,6 +30,7 @@ class Agent(dbus_utils.Agent):
         out_signature=''
     )
     def Release(self):
+        # TODO: Implement if org.bluez.obex.AgentManager1 expects specific actions.
         pass
 
     @ravel.method(
@@ -47,6 +48,7 @@ class Agent(dbus_utils.Agent):
         out_signature=''
     )
     def Cancel(self):
+        # TODO: Implement if org.bluez.obex.AgentManager1 expects specific actions.
         pass
 
     def reject(self, message):
@@ -56,9 +58,11 @@ class Listener(object):
 
     def __init__(self):
         pass
-        # dbussy doesn't currenltly support listening for non specific signals
+        # TODO: Revisit Listener functionality if dbussy library updates or alternatives are found.
+        # dbussy doesn't currently support listening for non-specific signals on an interface path,
+        # which would be needed here to monitor all transfers under /org/bluez/obex.
         # dbus_utils.BUS.listen_signal(
-        #     interface=INTERFACE_TRANSFER,
+        #     interface=INTERFACE_TRANSFER, # This would need to be a more generic match or specific paths
         #     fallback=True,
         #     func=self._on_transfer_changed,
         #     path='/')

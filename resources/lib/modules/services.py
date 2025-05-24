@@ -16,6 +16,9 @@ import oe
 
 xbmcDialog = xbmcgui.Dialog()
 
+# TODO: Review if an explicit stop_service method is needed to deconfigure/stop services
+# (Samba, SSH, etc.) started here. Current logic relies on systemd or
+# oe.set_service(state=0) for cleanup, which might be insufficient for all cases.
 class services(modules.Module):
 
     ENABLED = False

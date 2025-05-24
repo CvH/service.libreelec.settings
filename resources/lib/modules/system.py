@@ -276,8 +276,9 @@ class system(modules.Module):
 
     @log.log_function()
     def stop_service(self):
-        if hasattr(self, 'update_thread'):
-            self.update_thread.stop()
+        # Removed: if hasattr(self, 'update_thread'): self.update_thread.stop()
+        # This was incorrect as update_thread belongs to the updates module.
+        pass
 
     @log.log_function()
     def load_values(self):
